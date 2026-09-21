@@ -292,6 +292,42 @@ All architectural decisions concerning in-house VietQR generation, EXPIRED order
 7. **Live Demo Fallback in `README.md`**:
    - Added "Live demo fallback" section with exact commands (`docker compose up`, `npm run dev`, `cloudflared tunnel --url http://localhost:3000`) and operational limitations (random URL, no SLA, stops on machine sleep). Added `docs/decisions/` to the directory structure tree.
 
+---
+
+## 12. Hosting Decision Revisions, Baseline VPS Specifications, and PR #3 Review Fixes
+
+1. **Option D VPS Baseline & Verified Pricing (`docs/decisions/hosting.md`)**:
+   - Replaced stale 1 GB VPS pricing with the required technical baseline of **2 vCPU / 4 GB RAM** necessary to run Next.js server rendering, PostgreSQL container, and Phase 2 FFmpeg background worker.
+   - Sourced and cited DigitalOcean Basic Droplet ($24.00/mo, `digitalocean.com/pricing/droplets`).
+   - Sourced Hetzner Cloud price adjustments of 15 June 2026 (`docs.hetzner.com`), noting that 2 vCPU / 4 GB plans (CX23/CPX21) start around €5.99–€7.72/mo (excl. VAT) with CX/CAX stock availability marked "verify before use".
+   - Added domestic Vietnamese providers (FPT Cloud, Viettel IDC, Vietnix) as an Option D variant with VND billing, official VAT invoice (hóa đơn GTGT) support, and low domestic latency; noted caveats regarding promotional pricing (often requiring 12-36 months prepayment and excluding VAT).
+   - Provided overall monthly cost range ($7 to $24 / month, ~180,000 to 600,000 VND / month) based on exchange rate assumptions ($1 ≈ 25,000 VND, €1 ≈ 27,500 VND; verify before use).
+
+2. **Oracle Always Free Specifications (`docs/decisions/hosting.md`)**:
+   - Documented the reported Always Free Ampere A1 adjustment around 15 June 2026 from 4 OCPU / 24 GB to 2 OCPU / 12 GB (1,500 OCPU hours, 9,000 GB hours/mo; marked "verify before use" on active tenancy).
+   - Sourced the 7-day 20% idle compute reclamation policy directly to `docs.oracle.com Always Free Resources` documentation.
+   - Removed unverified credit-card identity check claims.
+
+3. **Quote Verification & Wording Paraphrases (`docs/decisions/hosting.md` & `docs/tasks/009-deploy-acceptance.md`)**:
+   - Replaced Render quotes with verified paraphrases citing official documentation (`render.com/docs/free`).
+   - Highlighted Render's explicit documentation notice that free instances must not be used for production applications.
+   - Clarified that pre-deploy commands are only supported on paid instances, confirming Prisma migrations must execute against `DIRECT_URL` prior to deployment.
+
+4. **Vercel Hobby Plan Refinements (`docs/decisions/hosting.md`)**:
+   - Removed unverified "10-15 seconds" function duration limit while retaining the core non-commercial fair-use clause from `vercel.com/docs/limits/fair-use-guidelines`.
+
+5. **Evaluation Matrix & Link Corrections (`docs/decisions/hosting.md`)**:
+   - Removed all subjective "x/10" rating scores across all options and the comparison table in favor of concise factual fit/does not fit statements.
+   - Fixed broken markdown link for Neon in the pre-deploy checklist and updated Neon documentation URLs to `neon.com`.
+
+6. **Active Local Defaults in Environment Template (`.env.example`)**:
+   - Preserved active local development defaults (`127.0.0.1` PostgreSQL and `http://localhost:3000`) so `cp .env.example .env` functions immediately out of the box with Docker Compose.
+   - Moved Render and Neon pooled/direct connection strings into commented Phase 1 demo lines.
+
+7. **Prisma Configuration Portability (`docs/tasks/001-project-setup.md`)**:
+   - Updated Prisma migration instructions to configure the direct URL according to the Prisma version in use (`schema.prisma` `directUrl` where supported, `prisma.config.ts` otherwise) and record the choice in `README.md`.
+   - Removed duplicate Prisma validation entry from Definition of Done.
+
 
 
 

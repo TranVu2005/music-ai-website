@@ -24,7 +24,7 @@
   - Project directory structure & initial configuration:
     - `next.config.ts` (or `next.config.js`): Configure Next.js with `output: 'standalone'` so the build produces a self-contained `.next/standalone` folder executed by Dockerfile via `node server.js`.
     - `src/app/`: Next.js App Router root layout skeleton (`src/app/layout.tsx` with fonts and global styles) and API Route Handlers directory.
-    - `src/db/`: Prisma ORM configuration (`schema.prisma` lives in `src/db/` so migrations land in `src/db/migrations/`, configured via `prisma.config.ts` or the `--schema` flag). The datasource block must declare both `url = env("DATABASE_URL")` and `directUrl = env("DIRECT_URL")` for Neon connection pooler compatibility. Copy `src/db/` before `npm ci` or execute `npx prisma generate` after copying source.
+    - `src/db/`: Prisma ORM configuration (`schema.prisma` lives in `src/db/` so migrations land in `src/db/migrations/`, configured via `prisma.config.ts` or the `--schema` flag). Configure the direct URL for migrations according to the Prisma version in use (schema.prisma directUrl where supported, prisma.config.ts otherwise) and record the choice in README.md. Copy `src/db/` before `npm ci` or execute `npx prisma generate` after copying source.
     - `src/db/migrations/`: Prisma ORM migration history directory.
     - `test/`: Test runner configuration with Vitest.
     - `.github/workflows/ci.yml`: Root automated CI workflow. Keep CI green by enabling dependency installation (`npm ci`), lint, test, and build steps once `package-lock.json` is committed in this task (noting `actions/setup-node` with `cache: 'npm'` requires a lockfile).
@@ -45,7 +45,6 @@
 - [ ] Base dependencies installed for Next.js application and `package-lock.json` committed.
 - [ ] `docker compose up` starts local PostgreSQL database successfully.
 - [ ] Docker build succeeds and the container serves `GET /api/health` with HTTP 200.
-- [ ] Prisma scripts (`prisma generate` and migration tooling) validate successfully against `DIRECT_URL`.
 - [ ] Linting, type-checking, and build validation scripts pass without errors.
 - [ ] CI pipeline passes on the task PR (`.github/workflows/ci.yml` green).
 - [ ] No compilation errors or configuration conflicts.

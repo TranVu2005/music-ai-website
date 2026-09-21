@@ -45,7 +45,7 @@
       - `OWNER_NOTIFICATION_EMAIL`: Must strictly match the verified Resend account owner email address.
       - `RESEND_API_KEY`: API key for Resend email delivery.
     - **Prisma Migrations against `DIRECT_URL`**:
-      - *Render Pre-Deploy Command Analysis*: Render's official documentation explicitly confirms: *"The pre-deploy command is available for paid web services, private services, and background workers."* Pre-deploy commands are NOT available on Render's free plan.
+      - *Render Pre-Deploy Command Analysis*: Render's official documentation indicates that pre-deploy commands are only available for paid service instances (web services, private services, background workers) and cannot be used on free plans ([render.com/docs/free](https://render.com/docs/free)). In addition, Render's free-tier documentation explicitly states that free instances must not be used for production applications.
       - *Migration Execution*: Because pre-deploy commands cannot run on the free plan, Prisma migrations must NOT be configured as a Render pre-deploy hook. Instead, migrations must be executed against `DIRECT_URL` (bypassing PgBouncer) from the developer workstation (`npx prisma migrate deploy --schema=src/db/schema.prisma`) or via GitHub Actions CI prior to triggering or activating the Render deployment.
   - `docs/acceptance/milestone-1.md`: Structured acceptance test report recording pass/fail status and operational notes for each Milestone 1 criterion. Real-device tests (iOS Safari, Android Chrome) are formatted as a checklist for human verification by the website owner.
 - Explicitly Out of Scope:
