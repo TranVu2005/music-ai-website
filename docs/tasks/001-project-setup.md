@@ -13,20 +13,22 @@
 ## 3. Scope
 - Initialize project directory structure:
   - `src/`: Next.js project configuration (TypeScript, Tailwind CSS, App Router & API Route Handlers).
-  - `src/db/migrations/`: Prisma ORM environment and initial migration setup.
+  - `src/db/`: Prisma ORM configuration (`schema.prisma` lives in `src/db/` so migrations land in `src/db/migrations/`, configured via `prisma.config.ts` or the `--schema` flag).
+  - `src/db/migrations/`: Prisma ORM migration history directory.
   - `test/`: Test runner configuration with Vitest.
   - `.github/workflows/ci.yml`: GitHub Actions automated CI workflow.
   - `build/deploy/`: `Dockerfile` and `docker-compose.yml`.
   - `tools/`: Development helper scripts.
 - Configure environment variables template `.env.example` and `.gitignore`.
 - Set up DevOps controls (Phase 1 Week 1): Pre-commit hook and CI checks preventing unapproved audio file commits outside `public/audio/previews/**` and `assets/watermark/**`.
-- Absolutely DO NOT write business logic or detailed application features in this task.
+- Explicitly Out of Scope:
+  - Absolutely DO NOT write business logic or detailed application features in this task.
 
 ## 4. Definition of Done
 - [ ] Directory structure initialized cleanly according to architecture design.
 - [ ] Base dependencies installed for Next.js application.
 - [ ] `docker compose up` starts local PostgreSQL database successfully.
-- [ ] Linting, type-checking, and build validation scripts pass without errors via Vitest.
+- [ ] Linting, type-checking, and build validation scripts pass without errors.
 - [ ] No compilation errors or configuration conflicts.
 
 ## 5. Required Tests

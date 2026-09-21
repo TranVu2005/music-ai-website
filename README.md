@@ -6,9 +6,12 @@ Specialized e-commerce website for selling pre-composed music tracks (supporting
 
 ```text
 music-shop/
+├── .env.example                        # Environment variable configuration template
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                      # Automated CI workflow for testing and build verification
+├── assets/                             # Static project assets and development audio
+│   └── watermark/                      # Voice-tag audio watermark samples for previews
 ├── docs/                               # Project documentation following docs-first methodology
 │   ├── requirements/                   # Functional and non-functional requirements
 │   │   └── requirements.md             # Detailed requirements specification
@@ -20,6 +23,9 @@ music-shop/
 │   └── tasks/                          # Task-based implementation work packages
 │       ├── _template.md                # Standardized task documentation template
 │       └── 001-project-setup.md        # Monorepo setup task with Next.js & Vitest
+├── public/                             # Public static web assets
+│   └── audio/
+│       └── previews/                   # Low-bitrate watermarked MP3 previews for web streaming
 ├── src/                                # Application source code (Next.js Monolith)
 │   ├── app/                            # Next.js App Router pages and components
 │   │   └── api/                        # Route Handlers for RESTful API endpoints
