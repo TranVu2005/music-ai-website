@@ -1,47 +1,35 @@
 version: '3.8'
 
 services:
-  # Cơ sở dữ liệu chính
+  # Primary PostgreSQL database
   postgres:
     image: postgres:16-alpine
     container_name: music_shop_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword
-      POSTGRES_DB: music_shop_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-music_shop_db}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # Backend Service
-  backend:
+  # Unified Next.js application service
+  app:
     build:
       context: ../..
       dockerfile: build/deploy/Dockerfile
-    container_name: music_shop_backend
-    restart: unless-stopped
-    ports:
-      - "5000:5000"
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgrespassword@postgres:5432/music_shop_db?schema=public
-    depends_on:
-      - postgres
-
-  # Frontend Service
-  frontend:
-    build:
-      context: ../..
-      dockerfile: build/deploy/Dockerfile
-    container_name: music_shop_frontend
+    container_name: music_shop_app
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:5000
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-music_shop_db}?schema=public
+      - NODE_ENV=production
+      - PORT=3000
     depends_on:
-      - backend
+      - postgres
 
 volumes:
   postgres_data:

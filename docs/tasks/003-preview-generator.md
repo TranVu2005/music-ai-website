@@ -3,7 +3,7 @@
 ## 1. Objectives
 - Implement an automated audio processing development utility script in `tools/` that converts uncompressed master audio files into watermarked MP3 preview tracks for web and mobile streaming.
 - Produce 128 kbps, 44.1 kHz stereo MP3 files output directly to `public/audio/previews/<slug>.mp3`.
-- Mix in a periodic voice-tag audio watermark from `assets/watermark/` repeating every 20 to 30 seconds throughout the preview track per `docs/architecture/file-protection.md`.
+- Mix in a periodic voice-tag audio watermark from `assets/watermark/tag.wav` repeating every 20 to 30 seconds throughout the preview track per `docs/architecture/file-protection.md`. In Phase 1, `tag.wav` is a synthesized placeholder tone (e.g., short tone/chime); the website owner's recorded brand voice tag replaces this file later with zero application code changes.
 - Read lossless master audio files from an external `MASTERS_DIR` path specified via environment variable, ensuring zero master audio files are committed to the repository.
 - Ensure FFmpeg and necessary audio codecs are installed and functional inside the project Docker container image (`build/deploy/Dockerfile`).
 
@@ -17,7 +17,7 @@
 ## 3. Scope
 - Components, directories, and files within task scope:
   - `tools/generate-preview.ts` (or `tools/generate-preview.sh` / `tools/generate-preview.js`): CLI utility accepting a master audio file path and track slug, calling FFmpeg with audio filter graphs to mix the voice tag into the preview.
-  - `assets/watermark/`: Store the default voice-tag watermark sample file (exempt from repository audio ignore rules).
+  - `assets/watermark/tag.wav`: Store the default watermark audio asset (exempt from repository audio ignore rules). In Phase 1, this is a synthesized placeholder audio tone. Required format: uncompressed WAV, 2 to 3 seconds duration. The owner's spoken brand tag replaces this file directly with no code modifications.
   - `build/deploy/Dockerfile`: Update Docker packaging to include FFmpeg and required media libraries (`ffmpeg`, `ffprobe`).
   - `.env.example`: Document the `MASTERS_DIR` environment variable configuration pointing to external master storage.
   - `test/tools/preview-generator.test.ts`: Automated test suite for audio generation and validation.
@@ -29,7 +29,7 @@
 ## 4. Definition of Done
 - [ ] Preview generation script is functional and callable via CLI (`npm run tools:preview-gen` or equivalent).
 - [ ] Converts input master audio into 128 kbps 44.1 kHz stereo MP3 output at `public/audio/previews/<slug>.mp3`.
-- [ ] Watermark voice tag from `assets/watermark/` is mixed into the audio track repeated periodically every 20-30 seconds.
+- [ ] Watermark file `assets/watermark/tag.wav` exists in valid WAV format (2-3 seconds duration) as a placeholder tone, and mixes into the audio track repeated periodically every 20-30 seconds.
 - [ ] Master audio files are read strictly from `MASTERS_DIR` outside the Git repository.
 - [ ] Docker image in `build/deploy/Dockerfile` builds with FFmpeg and ffprobe available on the PATH.
 - [ ] Linter and type-checker pass without errors.

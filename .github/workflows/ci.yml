@@ -19,16 +19,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          # Note: Enable npm caching once package-lock.json is committed in Task 001
+          # cache: 'npm'
 
-      # TODO: Bỏ comment khi triển khai code ứng dụng
+      # Enable application steps in Task 001 once dependencies and scripts are initialized:
       # - name: Install dependencies
       #   run: npm ci
 
       # - name: Run Linter
       #   run: npm run lint
 
-      # - name: Run Unit & Integration Tests (Bao gồm test thanh toán và quyền tải)
+      # - name: Run Unit & Integration Tests
       #   run: npm run test
 
       # - name: Build Application

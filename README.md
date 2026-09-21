@@ -12,6 +12,7 @@ music-shop/
 │       └── ci.yml                      # Automated CI workflow for testing and build verification
 ├── assets/                             # Static project assets and development audio
 │   └── watermark/                      # Voice-tag audio watermark samples for previews
+├── design/                             # Static HTML and Tailwind CSS UI/UX prototypes
 ├── docs/                               # Project documentation following docs-first methodology
 │   ├── requirements/                   # Functional and non-functional requirements
 │   │   └── requirements.md             # Detailed requirements specification

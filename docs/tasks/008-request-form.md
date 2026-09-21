@@ -15,6 +15,7 @@
 - [Project Plan](../project-plan.md)
 - [CLAUDE.md](../../CLAUDE.md)
 - [Task 002: Prisma Schema and Seed](./002-prisma-schema-seed.md)
+- [Task 009: Deployment Decision](./009-deploy-acceptance.md) (Hosting decision dictates rate-limiter backing store)
 
 ## 3. Scope
 - Components, directories, and files within task scope:
@@ -27,7 +28,7 @@
     - `ResendEmailProvider.ts`: Implementation integrating the Resend SDK.
     - `ConsoleEmailProvider.ts`: Mock implementation printing email contents to stdout/logger.
     - `index.ts`: Provider factory selecting implementation based on environment configuration (`NODE_ENV` / `RESEND_API_KEY`).
-  - `src/lib/security/rate-limit.ts`: In-memory or Redis-compatible IP rate-limiting utility for submission endpoints.
+  - `src/lib/security/rate-limit.ts`: IP rate-limiting utility for submission endpoints. The in-memory rate limiter is per-instance; if the approved hosting architecture (tied to the decision in Task 009) is serverless (e.g., Vercel), a shared store (such as Upstash / Redis) must be used. If deployed to a persistent Docker VPS, in-memory rate limiting is sufficient.
   - `test/api/custom-requests.test.ts`: Automated tests covering endpoint logic, validation, and resilience.
 - Explicitly Out of Scope:
   - Do NOT build an administrative management dashboard for custom requests (deferred to Phase 3; Phase 1 relies on DB persistence and email alerts).

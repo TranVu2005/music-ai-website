@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile cho [STACK] (Node.js / TypeScript)
+# Multi-stage Dockerfile for Next.js Monolith application
 
 # Stage 1: Base image
 FROM node:20-alpine AS base
@@ -8,22 +8,34 @@ RUN apk add --no-cache libc6-compat ffmpeg
 # Stage 2: Dependencies
 FROM base AS dependencies
 WORKDIR /app
-# TODO: Copy package.json và pnpm-lock.yaml / package-lock.json
-# COPY package*.json ./
-# RUN npm ci
+COPY package*.json ./
+RUN npm ci
 
 # Stage 3: Build
 FROM dependencies AS builder
 WORKDIR /app
-# TODO: Copy mã nguồn và chạy lệnh build
-# COPY . .
-# RUN npm run build
+COPY . .
+RUN npm run build
 
 # Stage 4: Production runner
 FROM base AS runner
 WORKDIR /app
+
 ENV NODE_ENV=production
-# TODO: Cấu hình non-root user và copy artifacts từ builder
-# USER node
-# EXPOSE 3000 5000
-# CMD ["node", "dist/backend/server.js"]
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Configure non-root system user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Copy build artifacts and standalone server
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]

@@ -14,10 +14,11 @@
 - [CLAUDE.md](../../CLAUDE.md)
 - [Task 001: Project Setup](./001-project-setup.md)
 - [Task 005: UI Design Mockups](./005-ui-design.md) (Formal owner approval required)
+- [Task 007: Catalog UI and Player](./007-catalog-ui-player.md) (Task 007 lands first; Task 006 rebases on it)
 
 ## 3. Scope
 - Components, directories, and files within task scope:
-  - `src/app/layout.tsx`: Root layout with font configuration, global styles, header, and footer.
+  - `src/app/layout.tsx`: Wrap Header and Footer around the existing layout structure established in Task 007 (Task 007 lands first, and Task 006 rebases on it, preserving `AudioPlayerProvider` and `AudioPlayerBar`).
   - `src/app/page.tsx`: Home page featuring hero banner, value proposition, featured track highlight, and custom composition CTA.
   - `src/app/about/page.tsx`: Artist bio, creative journey, and production philosophy.
   - `src/app/contact/page.tsx`: Official contact channels (social links, email, phone, location).
