@@ -24,7 +24,7 @@
 ## 3. Scope
 - Components, directories, and files within task scope:
   - `docs/decisions/hosting.md`: Comparative evaluation of application hosting (Vercel Hobby/Pro tiers vs Docker VPS e.g. Hetzner/DigitalOcean/Linode) and production PostgreSQL database hosting (managed PostgreSQL vs containerized PostgreSQL in Docker), detailing total estimated monthly cost, setup complexity, backup strategy, and public audio serving.
-  - Deployment configuration and CI/CD scripts appropriate for the approved hosting strategy (`build/deploy/` configurations, environment variable provisioning).
+  - Deployment configuration and CI/CD scripts appropriate for the approved hosting strategy (`build/deploy/` configurations, environment variable provisioning). If a Docker VPS is approved, create `build/deploy/docker-compose.prod.yml` (no published database port, `POSTGRES_PASSWORD` strictly required via `${POSTGRES_PASSWORD:?required}`, and no default credentials).
   - `docs/acceptance/milestone-1.md`: Structured acceptance test report recording pass/fail status and operational notes for each Milestone 1 criterion. Real-device tests (iOS Safari, Android Chrome) are formatted as a checklist for human verification by the website owner.
 - Explicitly Out of Scope:
   - Do NOT deploy prior to receiving explicit owner approval on `docs/decisions/hosting.md`.

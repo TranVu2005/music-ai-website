@@ -1,7 +1,7 @@
-version: '3.8'
+# Development docker-compose orchestration (dev-only; for local database and testing)
 
 services:
-  # Primary PostgreSQL database
+  # Primary PostgreSQL database (bound to loopback only for local development security)
   postgres:
     image: postgres:16-alpine
     container_name: music_shop_postgres
@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-music_shop_db}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

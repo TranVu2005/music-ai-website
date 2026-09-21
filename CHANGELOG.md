@@ -234,5 +234,20 @@ All architectural decisions concerning in-house VietQR generation, EXPIRED order
    - `docs/tasks/009-deploy-acceptance.md`: Added requirement that `docs/decisions/hosting.md` evaluate production PostgreSQL hosting (managed vs container) and total monthly cost. Marked real-device mobile checks (iOS Safari, Android Chrome) as human-verified by the owner via checklist rather than agent-executed.
    - `README.md`: Added `design/` to the project directory structure tree.
 
+---
+
+## 10. Standalone Output, Docker Hardening, and Gitkeep Localization
+
+1. **Next.js Standalone Build & Docker Container Hardening**:
+   - `docs/tasks/001-project-setup.md`: Added Next.js `output: 'standalone'` configuration to Scope. Added OpenSSL installation (`apk add --no-cache openssl`) and Prisma schema generation/engine copying notes to Scope.
+   - `build/deploy/Dockerfile`: Added OpenSSL package, copied `src/db/` before `npm ci`, executed `npx prisma generate` in builder stage, and ensured the Prisma query engine and schema files are copied into the standalone runner stage.
+   - `docs/tasks/001-project-setup.md`: Ticked pre-completed Definition of Done items (legacy dirs removed, Dockerfile/compose/.env.example rewritten) and added new DoD: "Docker build succeeds and the container serves GET /api/health with HTTP 200".
+   - `build/deploy/docker-compose.yml`: Removed obsolete Compose `version:` key, bound PostgreSQL strictly to loopback (`127.0.0.1:5432:5432`), and added dev-only header comment.
+   - `docs/tasks/009-deploy-acceptance.md`: Added requirement in Scope to create `build/deploy/docker-compose.prod.yml` with strict password validation (`${POSTGRES_PASSWORD:?required}`) and no published database port if Docker VPS hosting is approved.
+
+2. **Localization Cleanup**:
+   - Translated Vietnamese comments in `test/.gitkeep`, `tools/.gitkeep`, and `src/db/migrations/.gitkeep` into English.
+
+
 
 
