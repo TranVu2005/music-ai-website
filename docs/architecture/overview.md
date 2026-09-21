@@ -162,3 +162,31 @@ Customer           ──> Approves final demo -> Pays remaining balance (remain
                        │
 Owner              ──> Confirms final balance -> System delivers master files + License PDF
 ```
+
+---
+
+## 4. Portability and Hosting Guardrails
+
+To prevent vendor lock-in and guarantee zero-downtime migration between environments (local development, Phase 1 Render/Neon demo, and Phase 2 production VPS):
+
+1. **Hard Rule: No Real Customer Orders on Any Free Tier**:
+   - Free tiers (Render web service, Neon serverless Postgres, Cloudflare quick tunnels) are strictly dedicated to Phase 1 preview demonstration and stakeholder review.
+   - Real customer orders, VietQR payment verifications, and digital master downloads must NEVER run on any free tier. Phase 2 commercial transactions require the dedicated paid VPS.
+2. **Vendor-Agnostic Application Code**:
+   - Application code must never import hosting-vendor-specific SDKs or runtime APIs (e.g., no `@vercel/kv`, `@vercel/blob`, Vercel Edge runtime, or vendor-proprietary cron configuration files).
+   - Any platform-specific capability must sit strictly behind an abstract TypeScript interface:
+     - Email dispatch: `EmailProvider` (`ResendEmailProvider` in production, `ConsoleEmailProvider` in development/testing).
+     - Payment processing: `PaymentProvider` (`VietQRPaymentProvider` generating EMVCo strings locally).
+     - Rate limiting: `RateLimiter` (`MemoryRateLimiter` for single-instance demo/VPS; expandable to shared store if multi-instance scaling is required).
+3. **Container Image Portability**:
+   - The primary container deployment artifact is `build/deploy/Dockerfile`.
+   - The multi-stage build creates a standalone Next.js server with bundled OpenSSL (for Prisma engine) and FFmpeg/ffprobe.
+   - The container must remain 100% portable and runnable across local Docker Compose, the Render Docker web service, and the Phase 2 paid VPS.
+4. **Migration Path to Production VPS**:
+   - **Database Dump & Restore**: Database migrations run directly against `DIRECT_URL`. When migrating from Neon free to the VPS PostgreSQL container:
+     ```bash
+     pg_dump -Fc --no-acl --no-owner -d "$DIRECT_URL" -f neon_backup.dump
+     pg_restore --clean --if-exists -d "$DATABASE_URL" neon_backup.dump
+     ```
+   - **DNS Pre-Cutover**: Lower DNS record TTL to 300 seconds at least 48 hours prior to VPS cutover.
+   - **Configuration Parity**: Provision production environment variables directly from `.env.example`.

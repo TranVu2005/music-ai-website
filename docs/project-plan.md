@@ -23,6 +23,7 @@
   - **Phase 1 (Trial Release - Weeks 2-3) [5 features]**: Users view the website, listen to watermarked preview samples, and submit custom composition request forms. Online commerce is not yet enabled.
   - **Phase 2 (Sellable Release - Weeks 6-8) [4 features]**: Customers purchase catalog tracks, pay via bank transfer QR code, the owner manually confirms payment receipt on the admin dashboard, and the system automatically delivers timed master file download links.
   - **Phase 3 (Complete Release - Weeks 12-14) [4 features]**: Full end-to-end custom composition workflow (quote, deposit, demo preview, revision feedback, final delivery), customer accounts for managing purchase history, product review system, and automated PDF copyright license generation.
+- **Phase 2 Hosting Gate**: Hosting decision is final (paid VPS) before week 6. Admin upload requires a persistent FFmpeg background worker for audio compression and voice-tag watermarking, and the exclusive reservation hold-expiry sweep requires a deterministic scheduler (systemd timer or host cron). Real customer orders never run on a free tier.
 
 ---
 
@@ -96,3 +97,7 @@ The following features are **not** within the committed scope of these 3 phases:
    - **Hold Isolation Test**: Order A expires (`EXPIRED`), Order B reserves the same track (`reserved_by_order_id = B`), then Order A is cancelled or re-swept by cron; Order B's reservation must remain fully intact.
    - **Concurrency and Deadlock Avoidance Test**: Two concurrent orders requesting overlapping exclusive tracks in reverse order must never deadlock, and each track must be held by exactly one order.
    - **Sweep Job Lock Order**: Expiry and reservation sweep background tasks must follow the identical lock order: order row first (`SELECT ... FOR UPDATE`), then track rows ordered by ascending ID (`ORDER BY id ASC FOR UPDATE`).
+
+5. **Hard Rule: No Real Customer Orders on Any Free Tier**:
+   - All commercial e-commerce transactions, VietQR payment verifications, and digital master deliveries MUST execute exclusively on dedicated paid infrastructure (paid VPS).
+   - Free tiers (Render web service, Neon Postgres, Cloudflare quick tunnels) are strictly restricted to Phase 1 preview demonstration and stakeholder review. Real customer orders must NEVER run on any free tier.
