@@ -49,15 +49,15 @@ The product owner has finalized the hosting strategy for the project across Phas
     - **Inactivity Spin-Down**: Automatically spins down (sleeps) after **15 minutes of inactivity** (defined as receiving no incoming HTTP or WebSocket traffic).
     - **Cold Start Delay**: Waking from a spun-down state incurs a cold-start delay of approximately **50 seconds to 1 minute** before the first request is served.
     - **Free Instance Hours**: Limited to **750 free instance hours per calendar month** shared across all free services in the workspace. If exhausted, all free web services in the workspace are suspended until the next calendar month.
-    - **Resource Allocations**: Provisioned with 512 MB RAM and 0.1 shared vCPU.
+    - **Resource Allocations**: Provisioned with 0.1 CPU / 512 MB RAM ([render.com/docs/free](https://render.com/docs/free)).
     - **Ephemeral Filesystem**: Disk storage is ephemeral; all locally written files are wiped when the service spins down or restarts.
     - **Pre-Deploy Commands Unavailable**: Render's official documentation indicates that pre-deploy commands are only available for paid service instances (web services, private services, background workers) and cannot be used on free plans ([render.com/docs/free](https://render.com/docs/free)).
     - **Not for Production**: Render's free tier documentation explicitly states that free instances must not be used for production applications ([render.com/docs/free](https://render.com/docs/free)).
   - **Neon Free PostgreSQL**:
     - **Storage Cap**: Restricted to **0.5 GiB (500 MB)** of data storage per project.
     - **Compute Quota**: Limited to **100 Compute Unit hours (CU-hours)** per project per month (1 CU = 1 vCPU and 4 GB RAM).
-    - **Scale-to-Zero**: Computes automatically suspend after **5 minutes of inactivity**, conserving monthly CU-hours. Resuming from suspension introduces a brief connection latency (typically 1-3 seconds).
-    - **Egress Limit**: Includes **5 GB** of public network egress per month.
+    - **Scale-to-Zero**: Computes automatically suspend after **5 minutes of inactivity**, conserving monthly CU-hours ([neon.com/docs/introduction/plans#free-plan](https://neon.com/docs/introduction/plans#free-plan)). Resuming from suspension introduces a brief connection latency (resume latency duration is not published on the plans page: verify before use).
+    - **Egress Limit**: Includes **5 GB** of public network transfer (egress) per project per month ([neon.com/pricing](https://neon.com/pricing)).
     - **Connection Modes**: Provides both a pooled connection URL (`DATABASE_URL`, utilizing PgBouncer) and a direct unpooled connection URL (`DIRECT_URL`).
 - **Fit for Milestone 1**: **Fits for Demo**. Perfectly satisfies the Milestone 1 objective: a public, zero-cost, SSL-secured HTTPS URL where stakeholders can review UI layouts, play watermarked audio samples, and submit sample inquiries.
 - **Fit for Phase 2**: **Does not fit**. Violates the hard rule ("No real customer orders on any free tier"). Inactivity spin-downs delay customer checkout, monthly compute limits do not guarantee continuous uptime, and free instances cannot host persistent background workers for FFmpeg or hold-expiry schedulers.
@@ -80,35 +80,35 @@ The product owner has finalized the hosting strategy for the project across Phas
 ### Option D: Small Paid VPS (Baseline: 2 vCPU / 4 GB RAM)
 
 - **Technical Baseline Justification**:
-  - The Phase 2 application runs Next.js server rendering, local PostgreSQL database container, and an FFmpeg background worker for audio compression and periodic voice-tag mixing.
-  - A minimum baseline of **2 vCPU / 4 GB RAM** is required for production stability. Entry-level 1 GB or 2 GB plans cannot reliably handle concurrent Next.js server rendering alongside containerized PostgreSQL and FFmpeg audio transcoding.
+  - The Phase 2 application runs Next.js server rendering, a local PostgreSQL database container, and an FFmpeg background worker for audio compression and periodic voice-tag mixing.
+  - The requirement of a minimum baseline of **2 vCPU / 4 GB RAM** (assuming 1 GB or 2 GB plans cannot reliably handle concurrent Next.js server rendering alongside containerized PostgreSQL and FFmpeg audio transcoding) is an **engineering estimate**, not an empirical measurement. This estimate must be validated with a load test in Phase 2 before finalizing provisioning.
 - **Exchange-Rate Assumptions**:
   - 1 USD ≈ 25,000 VND; 1 EUR ≈ 27,500 VND (market assumptions as of 2026; verify before use).
 - **Monthly Cost Range**:
-  - **$7.00 to $24.00 / month** (~180,000 to 600,000 VND / month) depending on international vs domestic vendor, IP addressing, and contract commitment.
+  - **$24.00 / month** (~600,000 VND / month) based on the single verified baseline configuration (DigitalOcean Basic Droplet at $24.00/month). Unverified providers (Hetzner, domestic providers) must be verified before use and are not used to anchor the cost range.
 
 #### Variant 1: International Cloud Providers
 - **DigitalOcean**:
   - **Plan**: Basic Droplet (2 vCPU, 4 GB RAM, 80 GB SSD, 4 TB transfer).
-  - **Price**: **$24.00 / month** (~$0.03571/hour).
+  - **Price**: **$24.00 / month** (~$0.03571/hour) (verified on official pricing page).
   - **Official Citation**: [DigitalOcean Droplet Pricing](https://www.digitalocean.com/pricing/droplets)
 - **Hetzner Cloud**:
-  - **Pricing and Line Status**: Hetzner announced infrastructure price adjustments effective 15 June 2026 ([docs.hetzner.com Price Adjustment](https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/)). On the cloud product page ([hetzner.com/cloud](https://www.hetzner.com/cloud)), 2 vCPU / 4 GB RAM shared configurations (such as CX23 or CPX21) start around **€5.99 to €7.72 / month** excluding VAT (~$6.60 to $8.50 / month; verify before use), plus €0.60/month for dedicated IPv4. *Availability notice*: CX and CAX lines have frequently been reported as not orderable / out of stock in various datacenter locations; verify stock and pricing before use.
+  - **Pricing and Line Status**: Hetzner announced infrastructure price adjustments effective 15 June 2026 ([docs.hetzner.com Price Adjustment](https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/)). Following the 15 June 2026 adjustment, shared AMD/Intel CX and CAX lines were reported as not orderable / out of stock across several locations, and CPX line prices rose sharply. The cloud pricing page ([hetzner.com/cloud](https://www.hetzner.com/cloud)) renders pricing dynamically and reflects substantial differences between datacenter locations: European locations include 20 TB traffic, whereas the Singapore datacenter location carries a significant regional price premium and a reduced traffic quota (0.5 TB). Because prices and line availability vary by region and stock status: **verify before use** on [hetzner.com/cloud](https://www.hetzner.com/cloud). Hetzner is not used to establish the baseline lower bound.
 
 #### Variant 2: Domestic Vietnamese Providers
-Domestic hosting provides three key business advantages for Phase 2: billing directly in Vietnam Dong (VND), delivery of official VAT invoices (hóa đơn giá trị gia tăng) required for corporate tax accounting in Vietnam, and low round-trip latency (<10-20ms) for domestic buyers:
+Domestic hosting provides three key business advantages for Phase 2: billing directly in Vietnam Dong (VND), delivery of official VAT invoices ("hóa đơn giá trị gia tăng" ("value-added tax invoice")) required for corporate tax accounting in Vietnam, and low round-trip latency for domestic buyers in Vietnam:
 - **Vietnix**:
-  - **Plan**: VPS packages with 2-4 vCPU / 4 GB RAM (VPS SSD / NVMe / Giá Rẻ / Pro lines).
-  - **Price Range**: Approximately **186,000 to 350,000 VND / month** (~$7.50 to $14.00 / month).
+  - **Plan**: VPS packages with 2-4 vCPU / 4 GB RAM (e.g., VPS SSD, NVMe, "Giá Rẻ" ("Budget"), or Pro lines; verify before use).
+  - **Price Range**: Pricing page redirects dynamically; fixed monthly price for 2 vCPU / 4 GB cannot be verified without interactive cart configuration: **verify before use**.
   - **Official Citation**: [Vietnix VPS Pricing](https://vietnix.vn/vps/)
 - **FPT Cloud**:
-  - **Plan**: Cloud Server / VPS with 2 vCPU / 4 GB RAM.
-  - **Price Range**: Flexible enterprise configurations typically range around **350,000 to 500,000 VND / month** (~$14.00 to $20.00 / month) depending on disk tier (SSD/NVMe) and service level (verify before use via sales quotation).
+  - **Plan**: Cloud Server / VPS packages (e.g., standard configurations with 2 vCPU / 4 GB RAM and NVMe SSD).
+  - **Price Range**: Configured via enterprise resource tiers; pricing page describes custom options rather than fixed checkout pricing: **verify before use** via sales quotation.
   - **Official Citation**: [FPT Cloud VPS Pricing](https://fptcloud.com/bang-gia-thue-vps/)
 - **Viettel IDC**:
-  - **Plan**: Cloud Server / VPS packages (e.g., BASE03 with 2 vCPU / 4 GB RAM).
-  - **Price Range**: Standard packages list at approximately **399,000 VND / month** (~$16.00 / month) before discounts, with entry promotional packages starting around 235,000 VND / month.
-  - **Official Citation**: [Viettel IDC Cloud Server](https://viettelidc.com.vn/)
+  - **Plan**: Cloud Server packages (2 vCPU / 4 GB RAM).
+  - **Price Range**: Pricing page requires interactive configuration and sales consultation; specific package pricing is not published as fixed values on the public page: **verify before use**.
+  - **Official Citation**: [Viettel IDC Cloud Server Pricing](https://viettelidc.com.vn/cloud-server)
 - *Billing Caveat for Domestic Providers*: Promotional headline prices frequently require 12 to 36 months prepayment in advance and generally exclude 10% VAT. Month-to-month contracts without multi-year commitment may carry higher unit costs; verify before use.
 
 - **Fit for Milestone 1**: **Premature**. Incurs unnecessary recurring infrastructure expense before client acceptance of Phase 1 deliverables.
@@ -137,10 +137,10 @@ Domestic hosting provides three key business advantages for Phase 2: billing dir
 | **A: Cloudflare Quick Tunnel** | $0.00 | None (tied to dev laptop) | Manual on laptop | Manual on laptop | Fits as fallback | Does not fit | [developers.cloudflare.com](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/do-more-with-tunnels/trycloudflare/) |
 | **B: Render Free + Neon Free** | $0.00 | Yes (~1m cold start) | None (ephemeral) | None (external ping only) | Fits for demo | Does not fit | [render.com/docs/free](https://render.com/docs/free), [neon.com/docs](https://neon.com/docs/introduction/plans#free-plan) |
 | **C: Oracle Always Free VM** | $0.00 | None (if un-reclaimed) | Yes (container) | Yes (cron/systemd) | Does not fit | Does not fit / Fragile | [docs.oracle.com](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm) |
-| **D: Small Paid VPS** | ~$7.00 - $24.00 (180k - 600k VND) | None (24/7 dedicated) | Yes (container worker) | Yes (cron/systemd) | Premature | Fits (Primary choice) | [digitalocean.com](https://www.digitalocean.com/pricing/droplets), [hetzner.com](https://www.hetzner.com/cloud), [vietnix.vn](https://vietnix.vn/vps/) |
+| **D: Small Paid VPS** | $24.00 (verified: DigitalOcean; others verify before use) (~600k VND) | None (24/7 dedicated) | Yes (container worker) | Yes (cron/systemd) | Premature | Fits (Primary choice) | [digitalocean.com](https://www.digitalocean.com/pricing/droplets), [hetzner.com](https://www.hetzner.com/cloud), [vietnix.vn](https://vietnix.vn/vps/), [fptcloud.com](https://fptcloud.com/bang-gia-thue-vps/), [viettelidc.com.vn](https://viettelidc.com.vn/cloud-server) |
 | **E: Vercel Hobby** | $0.00 | Serverless cold starts | Incompatible | Incompatible | Does not fit / Excluded | Does not fit / Prohibited | [vercel.com/docs/limits/fair-use-guidelines](https://vercel.com/docs/limits/fair-use-guidelines) |
 
-*(Note: Pricing across providers assumes 1 USD ≈ 25,000 VND and 1 EUR ≈ 27,500 VND. If any pricing or specification values change over time, verify before use on the provider's official pricing page).*
+*(Note: Pricing assumes 1 USD ≈ 25,000 VND and 1 EUR ≈ 27,500 VND. DigitalOcean is the sole verified baseline at $24.00/mo; Hetzner and domestic providers require verification before use on their official pricing pages).*
 
 ---
 

@@ -328,6 +328,22 @@ All architectural decisions concerning in-house VietQR generation, EXPIRED order
    - Updated Prisma migration instructions to configure the direct URL according to the Prisma version in use (`schema.prisma` `directUrl` where supported, `prisma.config.ts` otherwise) and record the choice in `README.md`.
    - Removed duplicate Prisma validation entry from Definition of Done.
 
+---
+
+## 13. Hosting Figures Verification, Provider Pricing Corrections, and Hetzner Status Alignment
+
+1. **Option D Baseline Figures and Price Recomputation (`docs/decisions/hosting.md`)**:
+   - Recomputed the Phase 2 baseline monthly cost range and comparison matrix using verified figures only, anchoring the monthly cost at **$24.00 / month** (~600,000 VND / month) based on the single verified 2 vCPU / 4 GB RAM plan (DigitalOcean Basic Droplet at `digitalocean.com/pricing/droplets`).
+   - Sourced market exchange-rate assumptions: 1 USD ≈ 25,000 VND, 1 EUR ≈ 27,500 VND (market assumptions as of 2026; verify before use).
+   - Removed Hetzner from anchoring the lower bound of the cost range. Noted the 15 June 2026 price adjustment (`docs.hetzner.com`), reported unorderability of shared CX and CAX lines, sharp CPX price increases, and datacenter location differences on `hetzner.com/cloud` (Singapore location carries a regional price premium and reduced 0.5 TB traffic vs 20 TB in EU); marked Hetzner pricing and availability as "verify before use".
+   - Documented domestic Vietnamese VPS providers (Vietnix, FPT Cloud, Viettel IDC) citing their exact pricing-page URLs (`vietnix.vn/vps/`, `fptcloud.com/bang-gia-thue-vps/`, `viettelidc.com.vn/cloud-server`). Dropped stale figures, removed specific package names, and marked pricing as "verify before use". Added an English gloss for Vietnamese product-line names ("Giá Rẻ" ("Budget")).
+   - Reclassified the 2 vCPU / 4 GB baseline justification (assuming 1 GB or 2 GB plans cannot reliably handle concurrent Next.js, PostgreSQL, and FFmpeg) as an engineering estimate to be formally validated via load testing in Phase 2. Removed unverified latency claims.
+
+2. **Option B Free Tier Specification Verification (`docs/decisions/hosting.md`)**:
+   - Verified Render free instance resources directly against `render.com/docs/free`: confirmed 0.1 CPU / 512 MB RAM.
+   - Verified Neon free plan network egress directly against `neon.com/pricing`: confirmed 5 GB public network transfer per project per month.
+   - Updated Neon scale-to-zero documentation (`neon.com/docs/introduction/plans#free-plan`): confirmed 5-minute inactivity suspension, and marked resume latency as "verify before use" since specific resume latency durations are not published on the plans page.
+
 
 
 
