@@ -1,65 +1,98 @@
-# Kế hoạch Triển khai Website Bán Nhạc (Project Plan)
+# Music Store Website Implementation Plan (Project Plan)
 
-> **Tài liệu nguồn chuẩn (Source of Truth)**  
-> Tài liệu này được trích xuất trực tiếp và hệ thống hóa từ bản kế hoạch gửi khách hàng (*"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* - 2026-09-20).  
-> **Phạm vi dự án được đóng băng ở đúng 13 tính năng, phân bổ theo tỷ lệ 5 / 4 / 4 qua 3 giai đoạn (Phase 1: 5 tính năng, Phase 2: 4 tính năng, Phase 3: 4 tính năng).**
-
----
-
-## 1. Mục tiêu và Lộ trình Tổng thể
-
-- **Mục tiêu**: Xây dựng website độc lập phục vụ kinh doanh nhạc sáng tác có sẵn và nhận đặt sáng tác theo yêu cầu riêng, sẵn sàng đi vào vận hành kinh doanh trong khoảng 3 tháng (12 - 14 tuần), thực hiện bởi 01 lập trình viên full-time.
-- **Tiến độ chia theo 3 giai đoạn bàn giao thực tế (5/4/4 features)**:
-  - **Giai đoạn 1 (Bản thử - Tuần 2-3) [5 tính năng]**: Người dùng xem website, nghe thử nhạc mẫu có watermark, gửi form đặt nhạc. Chưa hỗ trợ mua bán online.
-  - **Giai đoạn 2 (Bản bán được - Tuần 6-8) [4 tính năng]**: Khách hàng mua nhạc có sẵn, thanh toán chuyển khoản qua mã QR, chủ website xác nhận đã nhận tiền trên trang quản trị, hệ thống tự động giao link tải file nhạc gốc có thời hạn.
-  - **Giai đoạn 3 (Bản đầy đủ - Tuần 12-14) [4 tính năng]**: Quy trình đặt sáng tác riêng trọn vẹn (báo giá, đặt cọc, demo, phản hồi chỉnh sửa, bàn giao), tài khoản khách hàng quản lý đơn mua, hệ thống đánh giá sản phẩm và tự động xuất giấy phép bản quyền dạng file PDF.
+> **Source of Truth**  
+> This document is directly extracted and systematized from the client implementation plan (*"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* - 2026-09-20).  
+> **The project scope is strictly frozen at exactly 13 features, allocated across 3 phases in a 5 / 4 / 4 ratio (Phase 1: 5 features, Phase 2: 4 features, Phase 3: 4 features).**
 
 ---
 
-## 2. Danh mục 13 Tính năng Đóng băng (Scope of 13 Features)
+## Glossary
+- **"Dùng chung"**: Standard / non-exclusive license (lower price, multiple customers can purchase and use simultaneously).
+- **"Độc quyền"**: Exclusive license (higher price, sold to only one customer, locked upon order creation and permanently removed from catalog upon payment).
+- **"Xác nhận đã nhận tiền"**: "Confirm payment received" admin action to verify bank transfer and activate order.
+- **"Tôi đã chuyển tiền"**: "I have transferred" customer action to claim bank transfer and extend exclusive reservation hold.
+- **"Đánh dấu đã hoàn tiền"**: "Mark as refunded" admin action to record manual bank refund completion.
+- **"Vui lòng liên hệ trực tiếp chủ website"**: "Please contact the website owner directly" customer notice when actions are blocked on expired or cancelled orders.
 
-| STT | Chức năng | Mô tả chi tiết | Giai đoạn (Phase) |
+---
+
+## 1. Objectives and Overall Roadmap
+
+- **Objective**: Build an independent website for selling pre-composed music tracks and accepting custom composition requests, production-ready for business operations within 3 months (12 - 14 weeks), executed by 01 full-time developer.
+- **Timeline by 3 Realistic Delivery Milestones (5 / 4 / 4 features)**:
+  - **Phase 1 (Trial Release - Weeks 2-3) [5 features]**: Users view the website, listen to watermarked preview samples, and submit custom composition request forms. Online commerce is not yet enabled.
+  - **Phase 2 (Sellable Release - Weeks 6-8) [4 features]**: Customers purchase catalog tracks, pay via bank transfer QR code, the owner manually confirms payment receipt on the admin dashboard, and the system automatically delivers timed master file download links.
+  - **Phase 3 (Complete Release - Weeks 12-14) [4 features]**: Full end-to-end custom composition workflow (quote, deposit, demo preview, revision feedback, final delivery), customer accounts for managing purchase history, product review system, and automated PDF copyright license generation.
+
+---
+
+## 2. Frozen Scope of 13 Features
+
+| No. | Feature | Detailed Description | Phase |
 |:---:|:---|:---|:---:|
-| 1 | **Trang chủ, giới thiệu, liên hệ** | Giới thiệu thương hiệu/nghệ sĩ, câu chuyện sáng tác và kênh thông tin liên hệ chính thức. | Phase 1 |
-| 2 | **Kho nhạc** | Danh sách bài hát; hỗ trợ tìm kiếm từ khóa, lọc theo thể loại (genre) và tâm trạng (mood). Hiển thị chỉ số BPM dưới dạng thông tin tham khảo. | Phase 1 |
-| 3 | **Nghe thử** | Trình phát nhạc trực tiếp (Audio Player) mượt mà trên desktop và thiết bị di động. File phát là bản nén chất lượng thấp chèn voice watermark định kỳ. | Phase 1 |
-| 4 | **Bảng giá** | Bảng niêm yết giá cho bài hát có sẵn (theo từng loại giấy phép) và các gói dịch vụ đặt sáng tác riêng. | Phase 1 |
-| 5 | **Form gửi yêu cầu đặt nhạc** | Khách hàng điền thông tin nhu cầu sáng tác. Ở Phase 1, hệ thống lưu trữ bản ghi vào `custom_requests` đồng thời gửi email thông báo về hòm thư chủ website, đảm bảo nếu email gửi thất bại thì yêu cầu vẫn không bị mất (chưa có trang quản trị). | Phase 1 |
-| 6 | **Giỏ hàng và thanh toán** | Khách chọn một hoặc nhiều bài hát vào giỏ hàng. Thanh toán bằng chuyển khoản quét mã VietQR (payload sinh nội bộ). Chủ website đối soát ngân hàng và bấm "Xác nhận đã nhận tiền" trên trang quản trị. | Phase 2 |
-| 7 | **Giao file tự động** | Sau khi chủ website xác nhận đơn, hệ thống gửi email chứa đường link bảo mật có hạn (`download_token`). Khi khách bấm tải, hệ thống cấp link Pre-signed URL 15-30 phút để tải file master chất lượng cao. | Phase 2 |
-| 8 | **Hai loại giấy phép** | - **Dùng chung (Standard)**: Giá mềm, nhiều người mua cùng lúc.<br>- **Độc quyền (Exclusive)**: Giá cao, tự động khóa tạm thời khi có khách đặt hàng, gỡ vĩnh viễn khỏi kho nhạc khi giao dịch hoàn tất. | Phase 2 |
-| 9 | **Trang quản trị** | Dành riêng cho chủ website: Đăng tải bài hát mới, cập nhật giá và phân loại giấy phép, theo dõi danh sách đơn hàng và thực hiện xác nhận thanh toán thủ công. | Phase 2 |
-| 10 | **Quy trình đặt sáng tác riêng** | Quy trình khép kín trên website: Tiếp nhận yêu cầu -> Báo giá -> Khách đặt cọc -> Gửi bản demo nghe thử -> Khách phản hồi chỉnh sửa -> Khách thanh toán phần còn lại -> Bàn giao file master và giấy phép. | Phase 3 |
-| 11 | **Tài khoản khách hàng** | Khách hàng đăng ký, đăng nhập để quản lý lịch sử đơn mua nhạc có sẵn và theo dõi tiến độ các đơn đặt sáng tác riêng. | Phase 3 |
-| 12 | **Đánh giá** | Khách hàng đã mua bài hát được quyền để lại đánh giá (xếp hạng sao và nhận xét) cho bài hát đó. | Phase 3 |
-| 13 | **Giấy phép dạng file PDF** | Tự động sinh file PDF giấy phép bản quyền cho từng bài hát trong đơn hàng thành công, đính kèm thông tin quyền sử dụng và mã giao dịch. | Phase 3 |
+| 1 | **Homepage, About, Contact** | Brand and artist introduction, creative story, and official contact channels. | Phase 1 |
+| 2 | **Track Catalog** | Public track listing; keyword search, filtering by genre and mood. BPM displayed as reference metadata. | Phase 1 |
+| 3 | **Audio Preview** | Smooth web audio player across desktop and mobile. Previews are low-bitrate compressed files with periodic voice watermarks. | Phase 1 |
+| 4 | **Pricing Table** | Clear price listing for catalog tracks (by license type) and custom composition service packages. | Phase 1 |
+| 5 | **Custom Music Request Form** | Customer fills out composition requirements. In Phase 1, data is persisted to `custom_requests` and simultaneously emailed to the owner via `EmailProvider` (Resend), ensuring requests are never lost even if email fails (no admin panel in Phase 1). | Phase 1 |
+| 6 | **Cart and Checkout** | Multi-item cart. Payment via bank transfer VietQR (EMVCo payload generated locally). Owner verifies bank statement and clicks "Xác nhận đã nhận tiền" (Confirm payment received) in the admin panel. | Phase 2 |
+| 7 | **Automated File Delivery** | Upon payment confirmation, the system emails a secure link with a timed `download_token_hash`. Clicking requests a 15-30 minute Pre-signed URL to download original lossless master files. | Phase 2 |
+| 8 | **Two License Types** | - **"Dùng chung" (Standard)**: Affordable, concurrent purchases allowed.<br>- **"Độc quyền" (Exclusive)**: Premium price, temporarily locked upon order creation, permanently removed from catalog upon completed payment. | Phase 2 |
+| 9 | **Admin Dashboard** | For the store owner: Upload new tracks, update pricing and license tiers, manage orders with `needs_refund` filtering, and perform manual payment confirmation. | Phase 2 |
+| 10 | **Custom Request Workflow** | Full workflow on the site: Request received -> Quote -> Deposit payment -> Demo audio sent -> Revision feedback -> Final balance payment -> Master files and license handover. | Phase 3 |
+| 11 | **Customer Accounts** | Customer registration and login to view catalog order history and track custom composition project milestones. | Phase 3 |
+| 12 | **Reviews** | Verified buyers who have purchased a track can leave star ratings (1-5 stars) and written reviews. | Phase 3 |
+| 13 | **License PDF Generation** | Automatically generate a copyright license PDF for each purchased track in a completed order, embedding transaction code and authorized usage terms. | Phase 3 |
 
 ---
 
-## 3. Ngoài phạm vi Dự án (Out of Scope)
+## 3. Out of Scope
 
-Các tính năng sau **không** nằm trong phạm vi cam kết của 3 giai đoạn này (có thể mở rộng sau nếu có thỏa thuận riêng):
-1. **Giao diện tiếng Anh / Đa ngôn ngữ** (chỉ hỗ trợ Tiếng Việt).
-2. **Cổng thanh toán quốc tế bằng thẻ tín dụng** (Stripe, PayPal,...).
-3. **Mô hình thuê bao / gói thành viên định kỳ** (Subscription).
-4. **Ứng dụng di động native** (iOS / Android app riêng biệt).
-5. **Tự động nhận biết tiền về tài khoản ngân hàng** (Automatic bank-transfer detection / Webhook tự động).
-6. **Thống kê doanh thu chuyên sâu** (Revenue statistics reporting).
-7. **Tự động xuất hóa đơn tài chính** (Invoice generation).
+The following features are **not** within the committed scope of these 3 phases:
+1. **Multilingual / English website UI** (website UI is Vietnamese-only; project documentation is in English).
+2. **International credit card payment gateways** (Stripe, PayPal, etc.).
+3. **Subscription / recurring membership model**.
+4. **Native mobile applications** (standalone iOS / Android apps).
+5. **Automatic bank-transfer detection** (webhook-based automated bank notification).
+6. **In-depth revenue statistics reporting**.
+7. **Financial invoice generation**.
 
 ---
 
-## 4. Quy tắc Nghiệp vụ Trọng yếu
+## 4. Critical Business Rules
 
-1. **Khóa tạm thời và giải phóng bài độc quyền qua `reserved_by_order_id`**:
-   - Khi đơn hàng chứa bài độc quyền được tạo, bài hát chuyển sang trạng thái `reserved`, thiết lập `reserved_by_order_id = :order_id` và thời hạn giữ chỗ mặc định 60 phút (`settings.hold_minutes = 60`).
-   - Khách hàng có nút tùy chọn "Tôi đã chuyển tiền" (`orders.paid_claimed_at` được ghi nhận) giúp gia hạn thời gian giữ chỗ lên `settings.claimed_hold_hours` (mặc định 24 giờ) và gửi email thông báo cho chủ website đối soát.
-   - Thao tác giải phóng / hết hạn / hủy đơn chỉ được phép giải phóng các bài hát thỏa mãn: `WHERE reserved_by_order_id = :order_id AND status = 'reserved'`, sau đó xóa trắng `reserved_by_order_id = NULL` và `reserved_until = NULL`.
-   - *Kịch bản QA bắt buộc*: Đơn hàng A hết hạn (`EXPIRED`), đơn hàng B đặt và giữ chỗ cùng bài hát đó (`reserved_by_order_id = B`), sau đó đơn hàng A bị hủy hoặc quét dọn lại (`swept`); quyền giữ chỗ của đơn hàng B phải được bảo toàn nguyên vẹn tuyệt đối.
-2. **Xác nhận đơn hàng đã hết hạn (`EXPIRED`)**:
-   - Khi chủ website xác nhận thanh toán cho đơn hàng đã hết hạn: Hệ thống kiểm tra lại tính khả dụng của tất cả các bài độc quyền trong đơn dựa trên `reserved_by_order_id`.
-   - Nếu toàn bộ bài độc quyền vẫn còn trống (chưa bị đơn khác giữ chỗ `reserved` hoặc mua `sold_exclusive`): Kích hoạt đơn hàng sang `PAID`, chuyển trạng thái bài sang `sold_exclusive` và gán `reserved_by_order_id = :order_id`.
-   - Nếu có bài độc quyền đã bị người khác đặt hoặc mua: Hệ thống từ chối toàn bộ đơn hàng, giữ đơn ở trạng thái `EXPIRED` và thiết lập cờ `orders.needs_refund = true` cho 100% số tiền để chủ website hoàn trả cho khách hàng.
-3. **Cơ chế tải file**:
-   - Email gửi khách hàng chứa link truy cập kèm `download_token` ở cấp độ đơn hàng (`orders`), hiệu lực cấu hình qua `settings.download_valid_days` (mặc định 30 ngày kể từ khi đơn thành `PAID`).
-   - Khi nhấp link, hệ thống kiểm tra trạng thái đơn hàng bắt buộc phải là `PAID` và sinh Pre-signed URL tải file gốc có thời hạn ngắn (15 - 30 phút). Lượt tải được lưu vết theo từng `order_item_id`.
+1. **Temporary Hold and Release of Exclusive Tracks via `reserved_by_order_id`**:
+   - When an order containing exclusive tracks is created, those tracks transition to `reserved`, setting `reserved_by_order_id = :order_id` and a hold duration configured by `settings.hold_minutes` (default **60 minutes**).
+   - Customers have an optional action `"Tôi đã chuyển tiền"` (I have transferred), recording `orders.paid_claimed_at = now()`, extending the hold to `settings.claimed_hold_hours` (default **24 hours**), and alerting the owner via email.
+   - **Abuse Controls for Claim Action**:
+     - Allowed only **once** per order (subsequent attempts rejected).
+     - Rejected if the order is already in `EXPIRED` or `CANCELLED` status, displaying the prompt: `"Vui lòng liên hệ trực tiếp chủ website"` (Please contact the website owner directly).
+     - The endpoint `POST /api/orders/:id/claim-paid` is strictly rate-limited.
+     - System enforces `settings.max_pending_exclusive_orders` (default **2**), capping maximum concurrent pending orders with exclusive tracks per customer email and per client IP.
+   - Release / expiry / cancellation queries must strictly isolate the order's hold: `WHERE reserved_by_order_id = :order_id AND status = 'reserved'`, clearing `reserved_by_order_id = NULL` and `reserved_until = NULL`.
+
+2. **Confirmation of Expired Orders (`EXPIRED`) & Refund Flow**:
+   - When the owner clicks `"Xác nhận đã nhận tiền"` (Confirm payment received) for an `EXPIRED` order:
+     - The system re-checks track availability using `reserved_by_order_id`.
+     - **If all exclusive tracks are still available**: Order transitions to `PAID`, tracks transition to `sold_exclusive` with `reserved_by_order_id = :order_id`, and download access is issued.
+     - **If at least one exclusive track has been lost or reserved by another order**:
+       - The entire order is rejected and retained as `EXPIRED`.
+       - A `payments` row is inserted with `status = 'paid'` (since money was actually received in the bank account; records `confirmed_by`, `confirmed_at`).
+       - The order is flagged with `orders.needs_refund = true` (100% refund).
+   - **Refund Completion Step**:
+     - When the owner manually transfers the refund back to the customer:
+       - The owner triggers the admin action `"Đánh dấu đã hoàn tiền"` (Mark as refunded).
+       - Updates: `orders.needs_refund = false`, `orders.payment_status = 'refunded'`, `payments.status = 'refunded'`.
+       - Bank transfer reference or note is stored in `payments.notes`.
+
+3. **Secure Download Delivery (`download_token_hash`)**:
+   - `orders.download_token_hash` is Nullable upon creation and only generated when the order transitions to `'paid'`.
+   - Security standard: At least 128 bits of cryptographically secure entropy, hashed with SHA-256 before database storage. Plaintext token is never stored and appears solely in the customer's email link (`https://musicshop.vn/downloads?token=<plaintext_token>`).
+   - Token comparison on verification is performed in constant time (timing-safe).
+   - Valid for `settings.download_valid_days` (default 30 days) from `confirmed_at` (`orders.download_expires_at`).
+   - Clicking download verifies `orders.payment_status === 'paid'` and generates a short-lived Pre-signed URL (15-30 minutes TTL). Downloads are audited per `order_item_id` in `download_logs`.
+
+4. **QA and Concurrency Plan**:
+   - **Hold Isolation Test**: Order A expires (`EXPIRED`), Order B reserves the same track (`reserved_by_order_id = B`), then Order A is cancelled or re-swept by cron; Order B's reservation must remain fully intact.
+   - **Concurrency and Deadlock Avoidance Test**: Two concurrent orders requesting overlapping exclusive tracks in reverse order must never deadlock, and each track must be held by exactly one order.
+   - **Sweep Job Lock Order**: Expiry and reservation sweep background tasks must follow the identical lock order: order row first (`SELECT ... FOR UPDATE`), then track rows ordered by ascending ID (`ORDER BY id ASC FOR UPDATE`).

@@ -1,10 +1,10 @@
-# Task: [Tên Task]
+# Task: [Task Name]
 
-## 1. Mục tiêu
-- Mô tả ngắn gọn, rõ ràng mục tiêu cần đạt được trong task này.
+## 1. Objectives
+- Concise, clear description of the goal to be achieved in this task.
 
-## 2. Đọc trước (link docs)
-- Liệt kê các tài liệu kiến trúc và nghiệp vụ cần đọc trước khi bắt đầu:
+## 2. Prerequisites (link docs)
+- List architecture and specification documents to read before starting:
   - [Requirements](../requirements/requirements.md)
   - [Architecture Overview](../architecture/overview.md)
   - [Database Schema](../architecture/database-schema.md)
@@ -12,20 +12,20 @@
   - [File Protection](../architecture/file-protection.md)
   - [CLAUDE.md](../../CLAUDE.md)
 
-## 3. Phạm vi
-- Các thành phần, thư mục, file nằm trong phạm vi thực hiện của task:
-  - Cho phép thay đổi: ...
-- Những điều tuyệt đối KHÔNG sửa đổi trong task này (ngoài phạm vi):
-  - Không thay đổi: ...
+## 3. Scope
+- Components, directories, and files within task scope:
+  - Allowed modifications: ...
+- Explicitly Out of Scope:
+  - Do not modify: ...
 
-## 4. Tiêu chí hoàn thành
-- Danh sách các điều kiện cụ thể để coi task là hoàn thành (Definition of Done):
-  - [ ] Tiêu chí 1: ...
-  - [ ] Tiêu chí 2: ...
-  - [ ] Đã chạy linter và type check không còn lỗi.
+## 4. Definition of Done
+- Specific conditions required to consider the task complete:
+  - [ ] Criterion 1: ...
+  - [ ] Criterion 2: ...
+  - [ ] Linter and type-checker pass without errors.
 
-## 5. Test cần có
-- Danh sách các bài kiểm thử bắt buộc:
-  - [ ] Unit test: ...
-  - [ ] Integration test: ...
-  - [ ] Test case cho thanh toán / quyền tải file (nếu liên quan).
+## 5. Required Tests
+- Mandatory test cases:
+  - [ ] Unit tests: ...
+  - [ ] Integration tests: ...
+  - [ ] Payment / file authorization test cases (if applicable).

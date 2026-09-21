@@ -1,127 +1,140 @@
-# Yêu cầu Dự án: Website Bán Nhạc (Music Shop)
+# Project Requirements: Music Store Website (Music Shop)
 
-> **Tài liệu nguồn chuẩn**: Đối chiếu và tuân thủ tuyệt đối [Kế hoạch triển khai](../project-plan.md).  
-> **Phạm vi dự án được đóng băng ở đúng 13 tính năng chia theo tỷ lệ 5 / 4 / 4 qua 3 giai đoạn.**
-
----
-
-## 1. Mục tiêu Dự án
-- Xây dựng nền tảng website chuyên nghiệp phục vụ bán các bản nhạc sáng tác có sẵn (cho phép nghe thử bản demo có watermark âm thanh, thanh toán chuyển khoản qua mã VietQR, chủ website xác nhận thanh toán thủ công và tự động giao link tải file chất lượng cao có thời hạn).
-- Cung cấp quy trình tiếp nhận, báo giá, quản lý tiến độ, đặt cọc và bàn giao cho dịch vụ đặt sáng tác âm nhạc theo yêu cầu riêng của khách hàng.
+> **Source of Truth**: Aligned strictly with the [Implementation Plan](../project-plan.md).  
+> **The project scope is strictly frozen at exactly 13 features allocated across 3 phases in a 5 / 4 / 4 ratio.**  
+> **Language Policy**: The customer-facing website UI is Vietnamese-only; all internal project documentation and technical specifications are written in English. Where UI labels or user-facing messages are quoted, the Vietnamese text is provided in quotes followed by its English explanation in parentheses.
 
 ---
 
-## 2. Danh sách 13 Tính năng Đóng băng theo Giai đoạn
-
-- **Giai đoạn 1 (Phase 1 - Bản thử) [5 tính năng]**:
-  1. Trang chủ, giới thiệu, liên hệ
-  2. Kho nhạc (tìm kiếm, lọc theo thể loại và tâm trạng; BPM hiển thị metadata tham khảo)
-  3. Nghe thử (Audio streaming bản demo chèn voice watermark; file demo có thể lưu trong `public/audio`)
-  4. Bảng giá (bài có sẵn và các gói sáng tác riêng)
-  5. Form gửi yêu cầu đặt nhạc (lưu vào `custom_requests` ĐỒNG THỜI gửi email về chủ website qua `EmailProvider` tích hợp Resend; chưa có admin panel)
-- **Giai đoạn 2 (Phase 2 - Bản bán được) [4 tính năng]**:
-  6. Giỏ hàng và thanh toán (Cart nhiều bài hát, chuyển khoản VietQR sinh chuỗi EMVCo nội bộ, chủ website xác nhận thủ công)
-  7. Giao file tự động (email chứa link tải kèm `download_token`, sinh Signed URL 15-30 phút khi bấm)
-  8. Hai loại giấy phép (Dùng chung và Độc quyền - bán xong gỡ khỏi web)
-  9. Trang quản trị (đăng nhạc, chỉnh giá, quản lý đơn hàng có bộ lọc `needs_refund` và xác nhận thanh toán)
-- **Giai đoạn 3 (Phase 3 - Bản đầy đủ) [4 tính năng]**:
-  10. Quy trình đặt sáng tác riêng khép kín (báo giá snapshot `deposit_percent` & `revision_limit`, đặt cọc, gửi demo, chỉnh sửa, thanh toán còn lại, giao file)
-  11. Tài khoản khách hàng (đăng ký, đăng nhập, xem lại đơn đã mua)
-  12. Đánh giá (chỉ khách hàng đã mua mới được đánh giá và chấm điểm)
-  13. Giấy phép dạng file PDF (tự động tạo file PDF giấy phép cho từng bài trong đơn mua)
+## 1. Project Objectives
+- Build a specialized online store for selling ready-made instrumental and vocal music tracks (supporting watermarked audio streaming previews, bank transfer via VietQR, manual owner payment confirmation, and automated delivery of timed high-quality master audio download links).
+- Provide an end-to-end workflow for receiving, quoting, managing progress, taking deposits, and delivering custom music composition projects requested by clients.
 
 ---
 
-## 3. Trang Thông tin & Kho Nhạc (Phase 1)
-- **Trang chủ, giới thiệu, liên hệ [Phase 1]**: Giới thiệu nghệ sĩ/thương hiệu, phong cách âm nhạc và thông tin liên hệ chính thức.
-- **Kho nhạc [Phase 1]**:
-  - Duyệt danh sách bài hát trong kho nhạc.
-  - Tìm kiếm văn bản (text search) theo tên bài hát và mô tả.
-  - Bộ lọc giới hạn: Lọc theo thể loại (Genre) và tâm trạng (Mood).
-  - Chỉ số nhịp độ (BPM) được lưu trữ và hiển thị dưới dạng metadata tham khảo cho người nghe, **không** sử dụng làm bộ lọc tìm kiếm.
-  - Quản lý file gốc: Trong Phase 1, trường `tracks.original_file_key` được phép để trống (`NULL`) vì các file demo phục vụ trực tiếp từ thư mục tĩnh và hệ thống chưa kết nối Master Storage. Tuy nhiên, khi bước sang Phase 2, một bài hát bắt buộc phải có `original_file_key` hợp lệ thì mới được phép chuyển sang trạng thái mở bán (`published`).
-- **Nghe thử trực tiếp [Phase 1]**:
-  - Trình phát nhạc (Audio Player) tương thích và mượt mà trên cả trình duyệt máy tính lẫn điện thoại.
-  - File phát là bản nén MP3 chất lượng thấp (128kbps) đã được chèn âm thanh watermark (voice tag) lặp lại định kỳ để bảo vệ quyền tác giả.
-  - Trong Phase 1, các file MP3 preview được đặt trong thư mục `public/audio/previews/` của ứng dụng. Tuyệt đối **không bao giờ** commit hoặc lưu file master gốc trong `public/` hay đưa lên git repository.
-- **Bảng giá [Phase 1]**: Trang niêm yết rõ ràng mức giá cho từng loại giấy phép bài có sẵn và bảng giá tham khảo cho các gói dịch vụ sáng tác theo yêu cầu.
-- **Form gửi yêu cầu đặt nhạc [Phase 1]**:
-  - Khách hàng điền form mô tả phong cách, thời lượng, mục đích sử dụng và link tham khảo.
-  - Ở Phase 1, hệ thống tiến hành **lưu bản ghi yêu cầu vào bảng `custom_requests` ĐỒNG THỜI gửi email thông báo** trực tiếp về hộp thư chủ website thông qua dịch vụ Resend (được bọc sau `EmailProvider` interface). Cơ chế lưu kép này đảm bảo ngay cả khi việc gửi email gặp sự cố mạng/dịch vụ thì dữ liệu yêu cầu của khách hàng vẫn được bảo toàn nguyên vẹn trong cơ sở dữ liệu. Hệ thống chưa có trang quản trị (Admin Panel) ở giai đoạn này.
+## 2. Frozen Scope of 13 Features by Phase
+
+- **Phase 1 (Trial Release) [5 features]**:
+  1. Homepage, About, Contact
+  2. Track Catalog (search, filter by genre and mood; BPM displayed as reference metadata)
+  3. Audio Preview (streaming low-bitrate compressed demo with periodic voice watermark; preview files stored in `public/audio/previews/`)
+  4. Pricing Table (catalog tracks by license type and custom composition packages)
+  5. Custom Music Request Form (persisted to `custom_requests` AND simultaneously emailed to the store owner via `EmailProvider` backed by Resend; no admin panel in Phase 1)
+- **Phase 2 (Sellable Release) [4 features]**:
+  6. Cart and Checkout (multi-item cart, bank transfer VietQR with local EMVCo payload generation, manual owner payment verification)
+  7. Automated File Delivery (email contains secure download link with `download_token_hash`, generating 15-30 minute Pre-signed URLs on demand)
+  8. Two License Types ("Dùng chung" Standard and "Độc quyền" Exclusive - removed from catalog once sold)
+  9. Admin Dashboard (upload tracks, configure prices and licenses, manage orders with `needs_refund` filter, manual payment confirmation, and refund tracking)
+- **Phase 3 (Complete Release) [4 features]**:
+  10. End-to-end Custom Composition Workflow (quote snapshot of `deposit_percent` & `revision_limit`, deposit, demo review, revisions, final payment, master delivery)
+  11. Customer Accounts (registration, authentication, purchase order history)
+  12. Reviews (verified buyers only can submit ratings and comments)
+  13. License PDF Generation (automatically generate copyright license PDF for each purchased track in an order)
 
 ---
 
-## 4. Giỏ hàng, Thanh toán & Giao File (Phase 2)
-- **Giỏ hàng đa bài hát (Cart = Multiple Items) [Phase 2]**:
-  - Khách hàng có thể thêm nhiều bài hát vào cùng một đơn hàng (`orders`).
-  - Mỗi mục trong đơn hàng (`order_items`) chứa thông tin một bài hát (`track_id`), một loại giấy phép đi kèm (`license_id`) và đơn giá tại thời điểm mua (`unit_price`). Mỗi bài hát chỉ được chọn một loại license trong một đơn hàng.
-- **Hai loại giấy phép (License) [Phase 2]**:
-  - **Giấy phép Dùng chung (Standard / Non-exclusive)**: Giá mềm, nhiều khách hàng có thể cùng mua và sử dụng theo điều khoản quy định.
-  - **Giấy phép Độc quyền (Exclusive)**: Giá cao, chỉ bán cho một khách hàng duy nhất.
-- **Tạm khóa bài hát độc quyền & Giữ chỗ linh hoạt [Phase 2]**:
-  - Khi đơn hàng được tạo, mọi bài hát độc quyền trong đơn lập tức được tạm khóa: `tracks.status = 'reserved'`, thiết lập liên kết `tracks.reserved_by_order_id = orders.id` và ghi nhận `reserved_until` dựa trên cấu hình `settings.hold_minutes` với giá trị mặc định là **60 phút** (thay vì 15 phút do chủ shop xác nhận thủ công).
-  - **Hành động "Tôi đã chuyển tiền" (I have transferred)**: Khách hàng có thể nhấn nút tùy chọn này sau khi chuyển khoản, hệ thống ghi nhận mốc thời gian `orders.paid_claimed_at`, tự động gia hạn thời gian giữ chỗ của các bài độc quyền trong đơn lên `settings.claimed_hold_hours` (mặc định **24 giờ**) và gửi email thông báo cho chủ website để ưu tiên đối soát.
-  - Khi đơn hàng hết hạn (`EXPIRED`) hoặc bị hủy (`CANCELLED`), hệ thống chỉ được phép giải phóng các bài hát thỏa mãn: `WHERE reserved_by_order_id = :order_id AND status = 'reserved'`, sau đó xóa trắng `reserved_by_order_id = NULL` và `reserved_until = NULL`. Quy tắc này đảm bảo không bao giờ giải phóng nhầm bài hát đang được giữ bởi một đơn hàng khác.
-- **Thanh toán chuyển khoản VietQR & Xác nhận thủ công [Phase 2]**:
-  - Khách hàng thanh toán qua chuyển khoản ngân hàng bằng mã QR. Chuỗi mã hóa VietQR (chuẩn EMVCo) được hệ thống tự động sinh nội bộ (không phụ thuộc dịch vụ bên thứ ba), với nội dung chuyển khoản chuẩn hóa là `order_code`.
-  - Thay vì phụ thuộc vào webhook tự động, chủ website sẽ đối soát biến động số dư thực tế tại ngân hàng và nhấn nút "Xác nhận đã nhận tiền" (Confirm payment received) trên trang quản trị.
-- **Đảm bảo tính toàn vẹn giao dịch (Concurrency & Idempotency) [Phase 2]**:
-  - Thao tác xác nhận thanh toán hoặc giữ chỗ/giải phóng nhiều bài độc quyền bắt buộc phải thực thi trong một Database Transaction duy nhất: Khóa bản ghi `orders` trước, sau đó khóa lần lượt các bản ghi `tracks` theo thứ tự tăng dần của `track.id` (`ORDER BY id ASC FOR UPDATE`) để triệt tiêu hoàn toàn nguy cơ deadlock.
-  - Nếu đơn hàng đã ở trạng thái `PAID`, thao tác xác nhận bị bỏ qua an toàn, ngăn chặn việc kích hoạt cấp quyền tải nhiều lần.
-- **Quy tắc xử lý khi xác nhận đơn hàng đã hết hạn (`EXPIRED`) [Phase 2]**:
-  - Khi chủ website bấm xác nhận một đơn hàng đã chuyển sang `EXPIRED`:
-    1. Hệ thống thực hiện kiểm tra lại tính khả dụng (re-check track availability) của tất cả các bài hát độc quyền có trong đơn thông qua trường `reserved_by_order_id`.
-    2. Nếu tất cả các bài độc quyền vẫn còn trống (chưa bị đơn khác giữ chỗ `reserved` hoặc mua `sold_exclusive`): Cho phép chuyển đơn sang `PAID`, chuyển trạng thái bài sang `sold_exclusive`, gán `reserved_by_order_id = :order_id` và tiến hành giao file bình thường.
-    3. Nếu có ít nhất một bài độc quyền đã bị đơn khác mua hoặc đang được giữ chỗ: Hệ thống **từ chối toàn bộ đơn hàng**, giữ nguyên trạng thái `EXPIRED` và thiết lập cột boolean `orders.needs_refund = true` cho 100% số tiền đơn hàng để chủ website hoàn trả tiền cho khách.
-  - Danh sách đơn hàng trên trang quản trị bắt buộc phải hỗ trợ **bộ lọc theo `needs_refund`** để chủ website nhanh chóng nhận diện và xử lý các đơn hàng cần hoàn tiền.
-- **Giao file tự động qua Download Token & Signed URL [Phase 2]**:
-  - Sau khi đơn hàng được xác nhận `PAID`, hệ thống thiết lập `orders.download_expires_at = confirmed_at + settings.download_valid_days` (mặc định 30 ngày) và tự động gửi email xác nhận cho khách hàng kèm đường dẫn chứa mã truy cập đơn hàng an toàn (`download_token` nằm trên bảng `orders`). Trước khi đơn chuyển sang `PAID`, `orders.download_expires_at` có giá trị `NULL`.
-  - Endpoint tải nhạc (`/api/downloads/:token`) bắt buộc phải kiểm tra trạng thái đơn hàng và **từ chối truy cập ngay lập tức nếu đơn hàng chưa ở trạng thái `paid`**.
-  - Khi khách hàng nhấn vào đường link trong email tới endpoint của ứng dụng, hệ thống xác thực đơn hàng hợp lệ và sinh Pre-signed URL trực tiếp từ Object Storage với thời hạn ngắn (15 - 30 phút) để khách tải file gốc.
-  - Lượt tải file được ghi nhật ký và kiểm soát chi tiết theo từng `order_item_id` trong `download_logs`.
-- **Trang quản trị (Admin Panel) [Phase 2]**:
-  - Đăng tải bài hát mới và tải lên file âm thanh master/preview.
-  - Thiết lập giá bán và điều khoản cho từng loại giấy phép.
-  - Quản lý danh sách đơn hàng (hỗ trợ lọc theo `payment_status` và `needs_refund`) và thực hiện hành động xác nhận thanh toán thủ công.
-  - Cấu hình các thông số hệ thống (`hold_minutes`, `claimed_hold_hours`, `download_valid_days`).
+## 3. Information Pages & Track Catalog (Phase 1)
+- **Homepage, About, Contact [Phase 1]**: Introduce the artist/brand, creative philosophy, and official contact channels.
+- **Track Catalog [Phase 1]**:
+  - Browse available catalog tracks.
+  - Full-text search by track title and description.
+  - Filter criteria: Filter by Genre and Mood.
+  - BPM (beats per minute) is stored and displayed as informational metadata for listeners; it is **not** used as a search filter.
+  - Master file key management: In Phase 1, `tracks.original_file_key` is Nullable (`NULL`) because tracks are served from local preview assets before object storage integration. In Phase 2+, every track must have a valid `original_file_key` before transitioning to `published`.
+- **Audio Preview [Phase 1]**:
+  - Smooth audio player responsive across desktop and mobile browsers.
+  - Playback files are compressed low-bitrate MP3s (128kbps) mixed with a periodic voice watermark (voice tag) repeated every 20-30 seconds to safeguard copyright.
+  - In Phase 1, preview files are served from `public/audio/previews/`. High-resolution master audio files must **never** be committed to the repository or placed in `public/`.
+- **Pricing Table [Phase 1]**: Public pricing table displaying standard rates per license type for ready-made tracks and baseline pricing for custom composition packages.
+- **Custom Music Request Form [Phase 1]**:
+  - Customers submit requirements specifying musical style, target duration, intended use case, and reference links.
+  - In Phase 1, the submission is **persisted into the `custom_requests` table AND simultaneously emailed** to the owner's inbox via Resend (`EmailProvider`). This dual persistence ensures client inquiries are preserved even during email delivery hiccups. The system does not have an admin dashboard in Phase 1.
 
 ---
 
-## 5. Đặt Sáng tác Riêng, Tài khoản Khách hàng, Đánh giá & Giấy phép PDF (Phase 3)
-- **Quy trình đặt sáng tác riêng trọn vẹn [Phase 3]**:
-  - Khách hàng gửi yêu cầu chi tiết qua tài khoản hệ thống.
-  - **Cơ chế Snapshot tại thời điểm báo giá**: Khi chủ website/nhạc sĩ nhập báo giá chính thức (`quoted_price`), hệ thống sẽ sao chép nguyên trạng các tham số từ `settings` sang bản ghi `custom_requests` bao gồm: số lần sửa miễn phí (`revision_limit = settings.free_revisions`) và tỷ lệ cọc (`deposit_percent = settings.deposit_percent`). Mọi thay đổi trong cài đặt hệ thống sau này sẽ không làm ảnh hưởng đến các đơn đặt sáng tác đã được báo giá.
-  - Khách hàng xác nhận và thanh toán tiền đặt cọc (`deposit_amount = quoted_price * deposit_percent / 100`).
-  - Nhạc sĩ sáng tác và tải bản nghe thử (demo) lên hệ thống.
-  - Khách hàng nghe demo và gửi phản hồi yêu cầu chỉnh sửa (quản lý qua lịch sử các lần chỉnh sửa `custom_request_revisions`, giới hạn theo `revision_limit` đã snapshot).
-  - Khách hàng phê duyệt bản demo cuối cùng và thanh toán số tiền còn lại (`remaining_amount`).
-  - Hệ thống tự động bàn giao gói file master hoàn chỉnh và giấy phép bản quyền.
-- **Tài khoản khách hàng (Customer Accounts) [Phase 3]**:
-  - Khách hàng đăng ký, đăng nhập và quản lý thông tin cá nhân.
-  - Xem lại lịch sử các bài hát đã mua cùng liên kết tải file còn hạn.
-  - Theo dõi trạng thái và tương tác trực tiếp trong quy trình đặt sáng tác riêng.
-- **Đánh giá sản phẩm (Reviews) [Phase 3]**:
-  - Chỉ khách hàng đã hoàn tất mua bài hát (verified buyers) mới có quyền gửi đánh giá xếp hạng (từ 1 đến 5 sao) và để lại bình luận cho bài hát đó.
-  - Mỗi mục mua (`order_item`) chỉ được tạo một đánh giá tương ứng.
-- **Giấy phép dạng file PDF (License PDF) [Phase 3]**:
-  - Tự động sinh file giấy phép PDF cho từng bài hát trong đơn hàng (`order_items`).
-  - Nội dung PDF thể hiện rõ mã giao dịch, thông tin bên cấp phép, thông tin bên mua và phạm vi quyền hạn sử dụng tương ứng với loại license đã mua.
+## 4. Cart, Checkout & File Delivery (Phase 2)
+- **Multi-Item Cart (`Cart = Multiple Items`) [Phase 2]**:
+  - Customers can add multiple tracks to a single order (`orders`).
+  - Each item in the order (`order_items`) records the selected track (`track_id`), license tier (`license_id`), and unit price (`unit_price`) at the time of purchase. A track can only have one license type per order.
+- **Two License Types [Phase 2]**:
+  - **"Dùng chung" (Standard / Non-exclusive)**: Accessible pricing, non-exclusive rights, multiple customers can buy and use under standard licensing terms.
+  - **"Độc quyền" (Exclusive)**: Premium pricing, single-buyer exclusive rights.
+- **Temporary Reservation & Abuse Control for Exclusive Tracks [Phase 2]**:
+  - When an order with exclusive tracks is created, all exclusive tracks are locked: `tracks.status = 'reserved'`, linked with `tracks.reserved_by_order_id = orders.id`, and `reserved_until` set based on `settings.hold_minutes` (default **60 minutes**, reflecting manual bank verification).
+  - **Action "Tôi đã chuyển tiền" (I have transferred)**:
+    - Customer can click this optional action after executing the bank transfer.
+    - System records `orders.paid_claimed_at = now()`, extends exclusive holds to `settings.claimed_hold_hours` (default **24 hours**), and sends an email alert to the store owner.
+    - **Abuse Controls**:
+      1. Allowed strictly **once** per order; repeat invocations are rejected.
+      2. Rejected if the order is already in `EXPIRED` or `CANCELLED` status, returning the user notice: `"Vui lòng liên hệ trực tiếp chủ website"` (Please contact the website owner directly).
+      3. The endpoint `POST /api/orders/:id/claim-paid` is rate-limited.
+      4. System enforces `settings.max_pending_exclusive_orders` (default **2**), capping the maximum number of concurrent pending orders containing exclusive tracks per customer email and per client IP.
+  - Release / expiry / cancellation queries must strictly isolate the order's hold: `WHERE reserved_by_order_id = :order_id AND status = 'reserved'`, clearing `reserved_by_order_id = NULL` and `reserved_until = NULL`. This prevents accidental release of tracks held by another order.
+- **VietQR Bank Transfer & Manual Verification [Phase 2]**:
+  - Customers pay via bank transfer QR code. The VietQR EMVCo payload is generated entirely in-house without external API dependencies, formatting `order_code` as the transfer memo.
+  - The store owner manually checks the bank account balance and clicks `"Xác nhận đã nhận tiền"` (Confirm payment received) in the admin panel.
+- **Concurrency & Deadlock Avoidance [Phase 2]**:
+  - Reservation, release, and payment confirmation transactions must execute in a single database transaction with strict row-locking order: lock `orders` first, then lock track rows in ascending track ID order (`ORDER BY id ASC FOR UPDATE`).
+  - If the order is already `PAID`, subsequent confirmation attempts are safely skipped (idempotency).
+- **Rule for Confirming Expired Orders (`EXPIRED`) & Refund Flow [Phase 2]**:
+  - When the owner confirms an `EXPIRED` order:
+    1. System re-checks availability of all exclusive tracks in the order using `reserved_by_order_id`.
+    2. If all exclusive tracks remain available: Order activates to `PAID`, tracks transition to `sold_exclusive` with `reserved_by_order_id = :order_id`, and download access is granted.
+    3. If any exclusive track has been sold or reserved by another order:
+       - The entire order is **rejected**, remaining in `EXPIRED` status.
+       - A `payments` row is inserted with `status = 'paid'` (confirming the money was received in the bank, recording `confirmed_by`, `confirmed_at`), NOT `'refunded'` or `'failed'`.
+       - The order is flagged with `orders.needs_refund = true` for 100% of the order total.
+  - **Manual Refund Completion**:
+    - When the owner completes the manual refund transfer, they click the admin action `"Đánh dấu đã hoàn tiền"` (Mark as refunded).
+    - Updates: `orders.needs_refund = false`, `orders.payment_status = 'refunded'`, `payments.status = 'refunded'`, and the bank refund transaction reference is saved in `payments.notes`.
+  - The admin order table must support filtering by `needs_refund`.
+- **Automated Delivery via Download Token & Signed URLs [Phase 2]**:
+  - Upon transitioning to `PAID`, the system generates `orders.download_token_hash` and sets `orders.download_expires_at = confirmed_at + settings.download_valid_days` (default 30 days). Prior to payment, `download_token_hash` and `download_expires_at` are `NULL`.
+  - The token must have at least 128 bits of cryptographically secure entropy, stored solely as a SHA-256 hash in `orders.download_token_hash`. Token validation uses constant-time comparison. Plaintext tokens appear exclusively in the download link sent via email (`https://musicshop.vn/downloads?token=<plaintext_token>`).
+  - The download endpoint (`/api/downloads/:token`) strictly rejects any request whose order is not `paid` (HTTP 403 Forbidden).
+  - Once validated, the system issues a temporary Pre-signed URL (15-30 minute TTL) directly from private object storage. Each download is audited per `order_item_id` in `download_logs`.
+- **Admin Dashboard [Phase 2]**:
+  - Upload new tracks and manage audio files.
+  - Configure pricing tiers and license terms.
+  - Manage order list with filters for `payment_status` and `needs_refund`, trigger manual confirmation, and perform `"Đánh dấu đã hoàn tiền"` (Mark as refunded).
+  - Configure system operational settings (`hold_minutes`, `claimed_hold_hours`, `download_valid_days`, `max_pending_exclusive_orders`).
 
 ---
 
-## 6. Yêu cầu Phi chức năng
-- **Bảo vệ file âm thanh gốc**: Tuyệt đối không để lộ URL trực tiếp của file master (WAV/FLAC) ra ngoài public. File gốc được lưu trữ trong Private Bucket và chỉ truy cập được qua Signed URL ngắn hạn (15-30 phút). File master tuyệt đối không được commit vào repository hoặc lưu trữ trong thư mục `public/`.
-- **Trải nghiệm phát trực tuyến**: Tốc độ streaming bản nghe thử mượt mà trên cả trình duyệt desktop và thiết bị di động.
-- **Tính toàn vẹn và an toàn giao dịch**: Sử dụng transaction có row-level lock theo thứ tự khóa tránh deadlock (`orders` trước, sau đó `tracks` theo `id ASC`), đảm bảo không xảy ra race condition hay xác nhận trùng lặp đơn hàng.
-- **Giao diện người dùng**: Chuẩn responsive (tối ưu di động), hỗ trợ tiếng Việt hoàn chỉnh và thân thiện SEO.
+## 5. Custom Requests, Customer Accounts, Reviews & PDF License (Phase 3)
+- **End-to-End Custom Request Workflow [Phase 3]**:
+  - Client submits project requirements via customer account.
+  - **Snapshot on Quote**: When the composer submits a formal quote (`quoted_price`), the system snapshots operational settings into `custom_requests`: `deposit_percent = settings.deposit_percent` and `revision_limit = settings.free_revisions`. Subsequent system settings changes do not alter already quoted projects.
+  - Client confirms and pays deposit (`deposit_amount = quoted_price * deposit_percent / 100`).
+  - Composer uploads watermarked demo files.
+  - Client reviews demo and submits revision feedback (tracked in `custom_request_revisions`, capped by `revision_limit`).
+  - Client approves final demo and pays remaining balance (`remaining_amount`).
+  - System delivers complete master package and copyright license.
+- **Customer Accounts [Phase 3]**:
+  - Registration, authentication, and profile management.
+  - View purchase history and active download links.
+  - Track custom composition project milestones.
+- **Product Reviews [Phase 3]**:
+  - Restricted to verified purchasers (`order_items`). Each purchased item may receive at most one review (1-5 star rating and comment).
+- **PDF License Generation [Phase 3]**:
+  - Automatically generate a personalized copyright license PDF per purchased `order_item`, containing transaction ID, licensee/licensor details, and scope of authorized use.
 
 ---
 
-## 7. Ngoài phạm vi Dự án (Out of Scope)
-- Hỗ trợ đa ngôn ngữ (giao diện tiếng Anh) - xem xét ở các giai đoạn mở rộng sau.
-- Cổng thanh toán thẻ tín dụng quốc tế (Stripe, PayPal,...).
-- Gói thuê bao / thành viên định kỳ (Subscription).
-- Ứng dụng di động native riêng (iOS / Android app).
-- Tự động nhận biết tiền đã về tài khoản ngân hàng (Automatic bank-transfer detection qua webhook).
-- Thống kê và báo cáo doanh thu chuyên sâu (Revenue statistics).
-- Tự động xuất hóa đơn tài chính (Invoice generation).
+## 6. Non-Functional Requirements
+- **Master Audio Asset Protection**: Master files (WAV/FLAC) must never have public URLs, must never be committed to Git or stored in `public/`, and are accessible solely through short-lived Pre-signed URLs (15-30 minutes TTL).
+- **Audio Streaming Performance**: Fast, responsive streaming playback across mobile and desktop devices.
+- **Transactional Integrity & Concurrency**: Strict row-level locking in ascending key order (`orders` first, then `tracks` ordered by `id ASC FOR UPDATE`) to prevent race conditions, double sales, and database deadlocks.
+- **User Interface & Localization**: Fully responsive mobile-first interface. Website UI is Vietnamese-only; SEO-friendly semantic markup.
+- **DevOps Controls (Phase 1 Week 1)**: Implement a Git pre-commit hook and CI pipeline check that rejects commits containing audio files outside `public/audio/previews/**` or files exceeding designated size limits (preventing accidental master audio commits).
+
+---
+
+## 7. Out of Scope
+- Multilingual website interface (Vietnamese only for end users).
+- International credit card gateways (Stripe, PayPal, etc.).
+- Subscription or recurring membership models.
+- Native mobile applications (iOS / Android).
+- Automatic bank-transfer detection via webhooks.
+- In-depth revenue analytics reporting.
+- Financial invoice generation.

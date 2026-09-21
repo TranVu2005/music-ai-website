@@ -1,32 +1,33 @@
-# Task 001: Khởi tạo Project theo Next.js Monorepo
+# Task 001: Project Initialization with Next.js Monorepo
 
-## 1. Mục tiêu
-- Thiết lập và khởi tạo cấu trúc dự án cơ sở cho `music-shop` theo kiến trúc thống nhất (Frontend & API: Next.js/React + TypeScript + Tailwind CSS với Route Handlers, Database: PostgreSQL + Prisma ORM, Storage: S3-compatible Cloudflare R2 / AWS S3, Container: Docker).
-- Đảm bảo các công cụ quản lý chất lượng mã nguồn (Linter, Formatter, TypeScript compiler) và kịch bản khởi chạy sẵn sàng hoạt động.
+## 1. Objectives
+- Set up and initialize the base project structure for `music-shop` following the unified fullstack architecture (Frontend & API: Next.js/React + TypeScript + Tailwind CSS with Route Handlers, Database: PostgreSQL + Prisma ORM, Storage: S3-compatible Cloudflare R2 / AWS S3, Container: Docker).
+- Ensure code quality tooling (Linter, Formatter, TypeScript compiler) and operational startup scripts are fully functional.
 
-## 2. Đọc trước (link docs)
+## 2. Prerequisites (link docs)
 - [Requirements](../requirements/requirements.md)
 - [Architecture Overview](../architecture/overview.md)
 - [Database Schema](../architecture/database-schema.md)
 - [CLAUDE.md](../../CLAUDE.md)
 
-## 3. Phạm vi
-- Khởi tạo cấu trúc các thư mục mã nguồn:
-  - `src/`: Cấu hình dự án Next.js (TypeScript, Tailwind CSS, App Router & API Route Handlers).
-  - `src/db/migrations/`: Khởi tạo môi trường ORM và file migration ban đầu.
-  - `test/`: Cấu hình test runner (Jest / Vitest).
-  - `build/deploy/`: Hoàn thiện `Dockerfile`, `docker-compose.yml`, và `.github/workflows/ci.yml`.
-  - `tools/`: Các script hỗ trợ phát triển.
-- Cấu hình biến môi trường chuẩn mẫu `.env.example` và thiết lập `.gitignore`.
-- Tuyệt đối KHÔNG viết mã xử lý nghiệp vụ hay tính năng chi tiết của ứng dụng trong task này.
+## 3. Scope
+- Initialize project directory structure:
+  - `src/`: Next.js project configuration (TypeScript, Tailwind CSS, App Router & API Route Handlers).
+  - `src/db/migrations/`: Prisma ORM environment and initial migration setup.
+  - `test/`: Test runner configuration (Jest / Vitest).
+  - `build/deploy/`: `Dockerfile`, `docker-compose.yml`, and `.github/workflows/ci.yml`.
+  - `tools/`: Development helper scripts.
+- Configure environment variables template `.env.example` and `.gitignore`.
+- Set up DevOps controls (Phase 1 Week 1): Pre-commit hook and CI checks preventing unapproved audio file commits outside `public/audio/previews/**` and `assets/watermark/**`.
+- Absolutely DO NOT write business logic or detailed application features in this task.
 
-## 4. Tiêu chí hoàn thành
-- [ ] Khởi tạo thành công cấu trúc thư mục sạch sẽ theo đúng thiết kế.
-- [ ] Cài đặt đầy đủ dependencies cơ bản cho ứng dụng Next.js.
-- [ ] Chạy được `docker compose up` khởi động cơ sở dữ liệu PostgreSQL cục bộ.
-- [ ] Chạy được lệnh kiểm tra mã nguồn (lint / type-check / build check) thành công.
-- [ ] Không có lỗi biên dịch hoặc xung đột cấu hình môi trường.
+## 4. Definition of Done
+- [ ] Directory structure initialized cleanly according to architecture design.
+- [ ] Base dependencies installed for Next.js application.
+- [ ] `docker compose up` starts local PostgreSQL database successfully.
+- [ ] Linting, type-checking, and build validation scripts pass without errors.
+- [ ] No compilation errors or configuration conflicts.
 
-## 5. Test cần có
-- [ ] Test kiểm tra cấu trúc thư mục và tính sẵn sàng của file cấu hình.
-- [ ] Smoke test / Health check endpoint đơn giản (`GET /api/health` trả về status 200 OK).
+## 5. Required Tests
+- [ ] Test directory structure and presence of required configuration files.
+- [ ] Basic health check smoke test (`GET /api/health` returns HTTP 200 OK).

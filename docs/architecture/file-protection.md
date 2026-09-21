@@ -1,111 +1,119 @@
-# Bảo vệ File & Bản quyền Âm thanh (File Protection)
+# Audio Asset Protection & Delivery Specification (File Protection)
 
-> **Tài liệu nguồn chuẩn**: Đối chiếu và tuân thủ tuyệt đối [Kế hoạch triển khai](../project-plan.md).  
-> **Hạ tầng lưu trữ**: S3-compatible Object Storage (Cloudflare R2 hoặc AWS S3), tuyệt đối không lưu file gốc công khai.
-
----
-
-## 1. Bản Preview Nghe thử có Watermark [Phase 1]
-
-- **Xử lý âm thanh tự động bằng FFmpeg**:
-  - Khi nhạc sĩ/chủ shop tải file nhạc gốc lên qua script hoặc trang quản trị, hệ thống kích hoạt worker/script nội bộ sử dụng **FFmpeg** (chạy ngay trong repository, không dùng dịch vụ ngoài phức tạp).
-  - FFmpeg tự động chuyển đổi file master chất lượng cao sang định dạng nén tối ưu cho web/mobile: **MP3 128kbps, 44.1kHz stereo**.
-- **Chèn âm thanh bảo vệ bản quyền (Audio Watermark / Voice Tag)**:
-  - FFmpeg tự động trộn (mix) một đoạn voice tag ngắn ("Music Preview" hoặc tên thương hiệu nghệ sĩ) lặp lại định kỳ mỗi **20 đến 30 giây** xuyên suốt bài hát.
-  - Âm lượng voice tag được cân chỉnh vừa đủ để người nghe vẫn cảm nhận được giai điệu và nhạc cụ, nhưng hoàn toàn vô dụng nếu kẻ xấu có ý định thu âm lại hoặc tách nhạc sử dụng thương mại.
-- **Lưu trữ và phân phối bản Preview**:
-  - **Giai đoạn 1 (Phase 1)**: Bản preview MP3 có watermark được đặt trong thư mục `public/audio/previews/` của dự án để phục vụ bản chạy thử nhanh chóng.
-  - **Giai đoạn 2 trở đi (Phase 2+)**: Lưu trữ trên **Public Bucket** của Cloudflare R2 (hoặc AWS S3) kết hợp với CDN có hỗ trợ HTTP Range Requests và cache hiệu năng cao, đảm bảo người dùng nghe thử trên điện thoại hoặc máy tính mượt mà.
+> **Source of Truth**: Aligned strictly with the [Implementation Plan](../project-plan.md).  
+> **Storage Infrastructure**: S3-compatible Object Storage (Cloudflare R2 or AWS S3); public access to master audio files is strictly forbidden.
 
 ---
 
-## 2. Lưu trữ An toàn File Gốc (Master Files) [Phase 2]
+## 1. Watermarked Audio Previews [Phase 1]
 
-- **Định dạng file master chất lượng cao**:
-  - File bàn giao cho khách hàng là file âm thanh nguyên bản không nén hoặc nén không suy giảm chất lượng (Lossless: **WAV 24-bit / 48kHz hoặc 96kHz, FLAC** hoặc MP3 320kbps nguyên gốc không watermark).
-- **Quy tắc an toàn bất khả xâm phạm (Zero-Leak Policy)**:
-  - **File master tuyệt đối KHÔNG BAO GIỜ được commit vào Git repository hoặc đặt trong thư mục `public/`**.
-  - File `.gitignore` của dự án áp dụng quy tắc chặn toàn bộ file âm thanh và chỉ mở ngoại lệ (allowlist) duy nhất cho thư mục demo preview:
+- **Automated Audio Processing via FFmpeg**:
+  - When an artist or administrator uploads master audio tracks, an internal background script/worker running **FFmpeg** executes within the repository environment (no external SaaS dependency).
+  - FFmpeg converts uncompressed master files into an optimized web/mobile streaming format: **MP3 128kbps, 44.1kHz stereo**.
+- **Voice Watermark Injection (Audio Watermark / Voice Tag)**:
+  - FFmpeg mixes a concise voice tag ("Music Preview" or brand name) repeated periodically every **20 to 30 seconds** across the entire duration of the preview track.
+  - The voice tag volume is calibrated so listeners clearly perceive melody, harmony, and arrangement, while rendering the sample unusable for commercial re-recording or audio ripping.
+- **Storage and Distribution of Previews**:
+  - **Phase 1**: Watermarked MP3 previews are served directly from `public/audio/previews/` for rapid development and testing.
+  - **Phase 2+**: Stored in a **Public Bucket** on Cloudflare R2 (or AWS S3) accelerated by a CDN supporting HTTP Range Requests (for seekable streaming) and edge caching.
+
+---
+
+## 2. Secure Master Audio Storage (Lossless Masters) [Phase 2]
+
+- **Master File Format**:
+  - Full commercial deliveries consist of uncompressed or lossless audio (**WAV 24-bit / 44.1kHz, 48kHz, or 96kHz, FLAC**, or unwatermarked 320kbps MP3).
+- **Strict Zero-Leak Policy**:
+  - **Master audio files must NEVER be committed into the Git repository or placed within `public/` directories**.
+  - The project `.gitignore` enforces strict exclusions with an allowlist limited to preview samples and repository watermark tag assets:
     ```gitignore
-    # Chặn toàn bộ file âm thanh master và thư mục nháp
+    # Temporary media & uploaded files
+    tmp/
+    temp/
+    uploads/
     *.wav
     *.flac
     *.mp3
+    !assets/watermark/
+    !assets/watermark/**
     !public/audio/previews/
     !public/audio/previews/**
     public/masters/
-    uploads/
     ```
-  - **Cơ chế kiểm soát đa tầng (Defense in Depth)**: Ngoài `.gitignore`, hệ thống thiết lập pre-commit hook và CI pipeline kiểm tra tự động kích thước file và phần mở rộng, ngăn chặn tuyệt đối trường hợp lập trình viên vô tình commit file master vào mã nguồn.
-- **Cấu hình bảo mật Private Object Storage**:
-  - File gốc được lưu trữ hoàn toàn trong **Private Bucket** trên Cloudflare R2 (hoặc AWS S3).
-  - Nghiêm cấm mọi quyền đọc/ghi công khai (Block Public Access: bật 100%).
-  - Chỉ có Next.js backend server sở hữu IAM / S3 API Access Credentials nội bộ mới có quyền thao tác với Private Bucket.
-- **Quy tắc đặt tên file ngẫu nhiên**:
-  - Tên file lưu trên storage sử dụng định danh UUID ngẫu nhiên (ví dụ: `masters/e7b32c81-42a9-45d2-b6cf-20d0e5138139.wav`) nhằm triệt tiêu hoàn toàn khả năng người dùng đoán được đường dẫn lưu trữ.
+    *Note: The watermark voice tag sample in `assets/watermark/` is explicitly exempted from the `*.wav` rule so that development environments can generate watermarked previews locally.*
+- **DevOps Controls (Phase 1 Week 1 Implementation)**:
+  - **Pre-Commit Hook**: A local Git hook inspects staged files and aborts any commit containing audio file extensions outside `public/audio/previews/**` or `assets/watermark/**`, or any file exceeding 15MB.
+  - **CI Pipeline Check**: GitHub Actions automated workflow validates every pull request and push, failing the build if unapproved audio assets are detected in the tree.
+- **Private Object Storage Configuration**:
+  - Master audio assets reside exclusively in a **Private Bucket** on Cloudflare R2 or AWS S3.
+  - Public read/write permissions are 100% blocked at the bucket level.
+  - Only authenticated backend Route Handlers with secure S3 credentials can interact with the Private Bucket.
+- **Randomized Storage Keys**:
+  - Stored files use UUID-based object keys (e.g., `masters/e7b32c81-42a9-45d2-b6cf-20d0e5138139.wav`) to prevent path enumeration or predictability.
 
 ---
 
-## 3. Cơ chế Phân phối File qua Download Token & Signed URL [Phase 2]
+## 3. Two-Tier Delivery via Download Token & Signed URLs [Phase 2]
 
-Thay vì nhúng link trực tiếp vào email, hệ thống áp dụng cơ chế 2 lớp an toàn:
+To protect master storage from hotlinking and link leakage, the platform implements two-tier access gating:
 
 ```
-[1. Email thông báo] ──> Link chứa Download Token (cấp độ đơn hàng):
-                         https://musicshop.vn/downloads?token=sec_abc123...
-                                │
-                                ▼
-[2. Khách click link] ─> Endpoint Next.js: GET /api/downloads/:token
-                                │
-                                ├──> Xác thực: orders.payment_status = 'paid'?
-                                ├──> Xác thực: now() <= orders.download_expires_at (30 ngày)?
-                                ├──> Ghi nhật ký vào download_logs theo order_item_id
-                                ├──> Tăng order_items.download_count += 1
-                                │
-                                ▼
-[3. Cấp Signed URL]  <── 302 Redirect Pre-signed URL (Cloudflare R2 / AWS S3)
-                         - Thời hạn sống cực ngắn: 15 - 30 phút
-                         - Header: Content-Disposition: attachment; filename="Ten-Bai.wav"
-                                │
-                                ▼
-[4. Trình duyệt tải] <── Trình duyệt tải trực tiếp file master từ Private Storage
+[1. Email Delivery] ──> Link containing Download Token:
+                        https://musicshop.vn/downloads?token=<plaintext_token>
+                               │
+                               ▼
+[2. Customer Click]  ─> Next.js Route Handler: GET /api/downloads/:token
+                               │
+                               ├──> Hash token with SHA-256 & verify against orders.download_token_hash
+                               ├──> Verify: orders.payment_status === 'paid'?
+                               ├──> Verify: now() <= orders.download_expires_at (30 days)?
+                               ├──> Log access in download_logs per order_item_id
+                               ├──> Increment order_items.download_count += 1
+                               │
+                               ▼
+[3. Pre-signed URL]  <── 302 Redirect to short-lived Pre-signed URL (Cloudflare R2 / AWS S3)
+                         - Strict TTL: 15 to 30 minutes
+                         - Header: Content-Disposition: attachment; filename="Track_Title.wav"
+                               │
+                               ▼
+[4. Direct Download] <── Browser downloads master file directly from Private Storage
 ```
 
-### 3.1. Mã bảo mật đơn hàng (`download_token`)
-- Mỗi đơn hàng thành công được cấp một mã định danh ngẫu nhiên bảo mật cao (`download_token` nằm trên bảng `orders`).
-- Token có thời hạn hiệu lực được cấu hình linh hoạt trong hệ thống (`settings.download_valid_days`, mặc định **30 ngày** kể từ ngày đơn hàng chuyển sang `PAID`).
-- Khách hàng có thể truy cập link tải trong email bất kỳ lúc nào trong khoảng thời gian 30 ngày này.
+### 3.1. Order Download Token (`download_token_hash`)
+- Generated only upon transitioning to `PAID` (initially `NULL` in `orders`).
+- High-entropy cryptographic token (at least 128 bits of randomness).
+- Stored exclusively as a SHA-256 hash in `orders.download_token_hash` and evaluated via constant-time comparison to prevent timing attacks.
+- Plaintext token is never stored in the database and exists solely in the email link sent to the customer.
+- Access remains valid for `settings.download_valid_days` (default **30 days**) from payment confirmation (`orders.download_expires_at`).
 
-### 3.2. Pre-signed URL thời hạn ngắn (TTL 15 - 30 phút)
-- Khi khách hàng nhấn vào nút tải bài hát trên giao diện tải đơn hàng, Next.js Route Handler gọi S3 SDK để sinh Pre-signed URL trực tiếp từ Cloudflare R2/S3 cho bài hát tương ứng trong `order_items`.
-- Thời gian sống của Signed URL chỉ kéo dài **từ 15 đến 30 phút** (đủ để trình duyệt hoàn tất tải xuống).
-- URL tự động hết hiệu lực sau thời gian trên, khiến liên kết không thể tái sử dụng hoặc chia sẻ công khai trên mạng xã hội.
-- Cấu hình header tải xuống:
+### 3.2. Short-Lived Pre-signed URLs (TTL 15 - 30 Minutes)
+- When the customer clicks download on the web delivery page, the backend invokes the AWS S3 SDK to generate an S3 Pre-signed URL for the corresponding track in `order_items`.
+- Time-to-Live is constrained to **15 - 30 minutes** (sufficient for download completion while preventing link redistribution).
+- Headers attached:
   ```http
-  Content-Disposition: attachment; filename="Ten_Bai_Hat_Master.wav"
+  Content-Disposition: attachment; filename="Track_Title_Master.wav"
   Content-Type: audio/wav
   ```
-  giúp người dùng tải về file với tên bài hát chuẩn xác, không bị hiển thị chuỗi UUID mã hóa.
+  ensuring standard, human-readable file naming upon download.
 
 ---
 
-## 4. Xác thực Quyền Tải & Ghi Nhật ký Bảo mật (Audit Logs) [Phase 2]
+## 4. Download Authentication & Audit Logs [Phase 2]
 
-Mọi yêu cầu sinh link tải file gốc đều phải vượt qua quy trình kiểm tra nghiêm ngặt tại Route Handler:
+Every master file download request is gated through the application endpoint:
 
-1. **Kiểm tra trạng thái đơn hàng**:
-   - Truy vấn `orders` thông qua `download_token`.
-   - Bắt buộc `orders.payment_status === 'paid'`. Nếu đơn hàng ở trạng thái `pending`, `expired`, hoặc `cancelled`, trả về lỗi HTTP 403 Forbidden.
-2. **Kiểm tra thời hạn tải**:
-   - So sánh thời điểm hiện tại `now()` với `orders.download_expires_at`.
-   - Nếu đã quá hạn 30 ngày, trả về thông báo liên kết đã hết hiệu lực.
-3. **Theo dõi theo từng mục sản phẩm (`order_items`)**:
-   - Quyền tải file và file giấy phép PDF [Phase 3] được quản lý theo từng `order_item`.
-   - Mỗi lần sinh URL tải thành công, trường `order_items.download_count` được tăng thêm 1 đơn vị.
-4. **Ghi nhật ký tải chi tiết (`download_logs`)**:
-   - Hệ thống lưu lại vết truy cập vào bảng `download_logs`:
-     - `order_item_id`: Xác định chính xác bài hát được tải.
-     - `ip_address`: Địa chỉ IP của người tải.
-     - `user_agent`: Thông tin trình duyệt / thiết bị tải.
-     - `downloaded_at`: Mốc thời gian chính xác.
-   - Dữ liệu này phục vụ đối soát, phát hiện hành vi chia sẻ token bất thường hoặc cố tình spam link.
+1. **Order Verification**:
+   - Matches incoming token hash against `orders.download_token_hash`.
+   - Requires `orders.payment_status === 'paid'`. Any order in `pending`, `expired`, or `cancelled` returns HTTP 403 Forbidden.
+2. **Expiration Enforcement**:
+   - Verifies `now() <= orders.download_expires_at`. Expired tokens return HTTP 410 Gone.
+3. **Item-Level Tracking (`order_items`)**:
+   - Master files and license PDFs [Phase 3] are controlled per `order_item`.
+   - Each successful download increment increments `order_items.download_count`.
+4. **Audit Logging (`download_logs`)**:
+   - Every download event creates a record in `download_logs`:
+     - `order_item_id`: Specific track downloaded.
+     - `ip_address`: Client IP address.
+     - `user_agent`: Browser and operating system signature.
+     - `downloaded_at`: Exact timestamp.
+   - Enables anomaly detection, link-sharing discovery, and fraud mitigation.

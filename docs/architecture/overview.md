@@ -1,145 +1,163 @@
-# Tổng quan Kiến trúc Hệ thống (Architecture Overview)
+# System Architecture Overview
 
-> **Tài liệu nguồn chuẩn**: Đối chiếu và tuân thủ tuyệt đối [Kế hoạch triển khai](../project-plan.md).  
-> **Phạm vi dự án được đóng băng ở đúng 13 tính năng chia theo tỷ lệ 5 / 4 / 4 qua 3 giai đoạn.**
-
----
-
-## 1. Phân rã Module Chức năng theo Giai đoạn
-
-Hệ thống được thiết kế theo cấu trúc modular liền mạch, triển khai dần qua 3 giai đoạn:
-
-### Giai đoạn 1 (Phase 1 - Bản thử) [5 tính năng]
-- **Module Presentation & Static Pages [Phase 1]**: Cung cấp giao diện Trang chủ, Giới thiệu nghệ sĩ, Thông tin liên hệ và Bảng giá niêm yết (bài có sẵn & gói đặt riêng).
-- **Module Track Catalog & Audio Streaming [Phase 1]**:
-  - Quản lý danh mục bài hát công khai.
-  - Tìm kiếm toàn văn theo tên bài hát và mô tả.
-  - Bộ lọc danh mục theo Thể loại (Genre) và Tâm trạng (Mood).
-  - Lưu trữ và hiển thị chỉ số BPM dưới dạng metadata tham khảo cho người nghe (không dùng làm bộ lọc).
-  - Trình phát âm thanh (Audio Streaming) phát bản nghe thử MP3 nén (128kbps) có chèn voice watermark định kỳ. File preview trong Phase 1 được đặt trong thư mục `public/audio/previews/`.
-  - Quản lý file gốc: Trường `tracks.original_file_key` là Nullable trong Phase 1 (do phục vụ nghe thử từ thư mục tĩnh cục bộ, chưa cấu hình Object Storage). Sang Phase 2, một bài hát bắt buộc phải có `original_file_key` hợp lệ thì mới được phép chuyển sang trạng thái mở bán (`published`).
-- **Module Custom Request Form [Phase 1]**: Tiếp nhận form thông tin yêu cầu đặt nhạc của khách hàng; hệ thống **lưu bản ghi vào `custom_requests` ĐỒNG THỜI gửi email thông báo** trực tiếp đến hộp thư chủ website qua `EmailProvider` (dịch vụ Resend), đảm bảo nếu việc gửi mail thất bại thì yêu cầu vẫn không bị thất thoát (chưa có trang quản trị ở Phase 1).
-
-### Giai đoạn 2 (Phase 2 - Bản bán được) [4 tính năng]
-- **Module Cart & Orders [Phase 2]**:
-  - Giỏ hàng cho phép chọn nhiều bài hát (`orders` và `order_items`). Mỗi bài trong đơn gắn với một loại giấy phép cụ thể (`standard` hoặc `exclusive`).
-  - Quản lý trạng thái đơn hàng: `pending`, `paid`, `expired`, `cancelled`, `refunded`.
-  - Cơ chế tạm khóa bài hát độc quyền: Tự động chuyển trạng thái bài độc quyền sang `reserved`, liên kết `tracks.reserved_by_order_id = orders.id` với hạn giữ chỗ mặc định 60 phút (`settings.hold_minutes = 60`).
-  - Hỗ trợ hành động khách hàng "Tôi đã chuyển tiền" (`orders.paid_claimed_at`), tự động gia hạn thời gian giữ chỗ lên `settings.claimed_hold_hours` (mặc định 24 giờ) và gửi email thông báo chủ website đối soát.
-  - Giải phóng bài độc quyền có chọn lọc: Thao tác hủy hoặc hết hạn đơn chỉ giải phóng các bài `WHERE reserved_by_order_id = :order_id AND status = 'reserved'`, sau đó xóa trắng `reserved_by_order_id` và `reserved_until`.
-- **Module Payment & Confirmation [Phase 2]**:
-  - Tích hợp thanh toán quét mã VietQR: Tự động sinh chuỗi mã hóa chuẩn EMVCo cục bộ (không phụ thuộc bên thứ ba), nội dung chuyển khoản chuẩn hóa là `order_code`.
-  - Cơ chế xác nhận thanh toán thủ công: Chủ website kiểm tra tài khoản ngân hàng và thực hiện thao tác "Xác nhận đã nhận tiền" (Confirm payment received) trên trang quản trị.
-  - Đảm bảo tính toàn vẹn giao dịch và phòng tránh deadlock (Deadlock Avoidance): Mọi thao tác xác nhận/giữ chỗ/giải phóng đều thực thi trong một Database Transaction duy nhất, khóa bản ghi `orders` trước, sau đó khóa các bản ghi `tracks` theo thứ tự `ORDER BY id ASC FOR UPDATE`.
-  - Xử lý đơn hàng đã hết hạn (`EXPIRED`): Re-check tính khả dụng của bài độc quyền qua `reserved_by_order_id` khi admin bấm xác nhận. Nếu bài độc quyền đã bị mua/giữ bởi đơn khác, hệ thống từ chối toàn bộ đơn hàng, giữ đơn ở `EXPIRED` và thiết lập cột boolean `orders.needs_refund = true` cho 100% số tiền đơn hàng.
-  - Thiết kế sẵn trừu tượng hóa qua `PaymentProvider` interface để sẵn sàng cắm thêm adapter webhook tự động trong tương lai mà không làm thay đổi core business logic.
-- **Module File Protection & Delivery [Phase 2]**:
-  - Lưu trữ an toàn file master chất lượng cao (WAV 24-bit / FLAC) trong Private Object Storage (Cloudflare R2 hoặc AWS S3). Tuyệt đối không commit file master vào repo hoặc để trong `public/`.
-  - Khi đơn hàng `PAID`, thiết lập `orders.download_expires_at = confirmed_at + settings.download_valid_days` (Nullable trước đó) và gửi email kèm đường dẫn chứa mã truy cập đơn hàng an toàn (`download_token` trên bảng `orders`, hiệu lực mặc định 30 ngày).
-  - Khi khách hàng truy cập link tải, endpoint ứng dụng kiểm tra bắt buộc đơn hàng phải là `paid` (từ chối mọi đơn chưa thanh toán) và cấp Pre-signed URL tải trực tiếp có thời hạn ngắn (15 - 30 phút).
-  - Quản lý lượt tải và ghi log bảo mật chi tiết theo từng `order_item_id` vào bảng `download_logs`.
-- **Module Admin Dashboard [Phase 2]**: Trang quản trị dành riêng cho chủ website để đăng bài hát mới, cập nhật giá và license, quản lý danh sách đơn hàng (hỗ trợ lọc theo `needs_refund`), xác nhận thanh toán thủ công và cấu hình tham số hệ thống (`hold_minutes`, `claimed_hold_hours`, `download_valid_days`).
-
-### Giai đoạn 3 (Phase 3 - Bản đầy đủ) [4 tính năng]
-- **Module Custom Request Workflow [Phase 3]**: Quản lý quy trình sáng tác riêng khép kín trực tiếp trên hệ thống: Tiếp nhận yêu cầu -> Báo giá (thực hiện snapshot `deposit_percent` và `revision_limit` từ `settings` sang bản ghi `custom_requests`) -> Khách đặt cọc -> Tải bản nghe thử demo -> Tiếp nhận phản hồi chỉnh sửa (theo dõi lịch sử qua `custom_request_revisions`, giới hạn `revision_limit`) -> Khách thanh toán phần còn lại -> Bàn giao file master và giấy phép.
-- **Module Customer Accounts [Phase 3]**: Khách hàng đăng ký, đăng nhập tài khoản an toàn; xem lại danh sách đơn hàng đã mua, link tải file còn hạn và theo dõi các đơn đặt sáng tác riêng.
-- **Module Reviews [Phase 3]**: Hệ thống đánh giá xếp hạng sao (1 đến 5 sao) và bình luận phản hồi cho từng bài hát; chỉ cho phép người mua thực tế (`order_item` đã thanh toán thành công) được quyền để lại đánh giá.
-- **Module License PDF Generator [Phase 3]**: Tự động sinh file giấy phép bản quyền PDF cho từng bài hát (`order_item`) trong đơn hàng thành công, lưu trữ trên Object Storage và đính kèm link tải cho khách hàng.
+> **Source of Truth**: Aligned strictly with the [Implementation Plan](../project-plan.md).  
+> **The project scope is strictly frozen at exactly 13 features allocated across 3 phases in a 5 / 4 / 4 ratio.**
 
 ---
 
-## 2. Công nghệ Cốt lõi (Tech Stack)
+## 1. Functional Module Breakdown by Phase
 
-Hệ thống được chuẩn hóa theo kiến trúc Monorepo thống nhất, tinh giản tối đa hạ tầng vận hành:
+The system is organized into a modular monolith deployed progressively across 3 phases:
 
-- **Fullstack Web Framework**: Next.js (TypeScript, App Router) kết hợp Tailwind CSS cho giao diện người dùng và Next.js Route Handlers (`src/app/api/...`) thay thế cho kiến trúc tách biệt backend server.
-- **Cơ sở dữ liệu**: PostgreSQL kết hợp Prisma ORM quản lý mô hình dữ liệu, quan hệ bảng và database migrations.
-- **Lưu trữ đối tượng (Object Storage)**: Cloudflare R2 (hoặc AWS S3) tương thích chuẩn S3 API.
-  - **Public Bucket / CDN**: Lưu trữ ảnh bìa (cover image) và bản nghe thử MP3 nén (preview audio watermark).
-  - **Private Bucket**: Lưu trữ an toàn tuyệt đối file master gốc (WAV/FLAC) và file giấy phép PDF đã tạo.
-- **Xử lý âm thanh (Audio Processing)**: FFmpeg chạy dưới dạng script/worker nội bộ trong cùng repository (CLI script / Node.js background worker) để tự động nén âm thanh và chèn voice watermark vào file preview khi bài hát mới được upload.
-- **Dịch vụ Email (Email Delivery)**: Sử dụng dịch vụ **Resend** được bọc sau interface `EmailProvider` để trừu tượng hóa việc gửi email thông báo đơn hàng, xác nhận thanh toán và thông báo yêu cầu sáng tác.
-- **Container hóa & CI/CD**: Docker, Docker Compose cho môi trường phát triển cục bộ và GitHub Actions cho kiểm thử tự động (CI).
+### Phase 1 (Trial Release) [5 features]
+- **Presentation & Static Pages Module [Phase 1]**: Serves the Homepage, Artist About page, Contact channels, and public Pricing Tables (catalog tracks by license type & custom packages).
+- **Track Catalog & Audio Streaming Module [Phase 1]**:
+  - Manages the public track catalog.
+  - Full-text search across titles and descriptions.
+  - Catalog filtering by Genre and Mood.
+  - Stores and displays BPM as informational reference metadata (not used as a search filter).
+  - Audio streaming player for compressed MP3 (128kbps) previews with periodic voice watermarks. In Phase 1, preview files are served from `public/audio/previews/`.
+  - Master audio management: `tracks.original_file_key` is Nullable in Phase 1 (as demo tracks are served locally before object storage setup). In Phase 2+, every track must have a valid `original_file_key` before transitioning to `published`.
+- **Custom Request Form Module [Phase 1]**: Collects custom composition inquiry briefs; the system **persists the record into `custom_requests` AND simultaneously dispatches an email alert** to the store owner's inbox via `EmailProvider` (backed by Resend). This dual persistence guarantees inquiries are preserved even if email transmission fails (no admin dashboard exists in Phase 1).
+
+### Phase 2 (Sellable Release) [4 features]
+- **Cart & Orders Module [Phase 2]**:
+  - Multi-item cart (`orders` and `order_items`). Each item links a track to a specific license type (`standard` or `exclusive`).
+  - Order status lifecycle: `pending`, `paid`, `expired`, `cancelled`, `refunded`.
+  - Temporary reservation of exclusive tracks: Automatically sets `tracks.status = 'reserved'`, links `tracks.reserved_by_order_id = orders.id`, and applies a default hold duration of 60 minutes (`settings.hold_minutes = 60`).
+  - Customer claim action `"Tôi đã chuyển tiền"` (I have transferred): Updates `orders.paid_claimed_at = now()`, extends reservation hold to `settings.claimed_hold_hours` (default 24 hours), and emails the owner for priority verification.
+  - **Abuse Controls on Claim Action**:
+    - Callable only once per order.
+    - Rejected if the order is `EXPIRED` or `CANCELLED`, returning the notice `"Vui lòng liên hệ trực tiếp chủ website"` (Please contact the website owner directly).
+    - Rate-limited endpoint (`POST /api/orders/:id/claim-paid`).
+    - Enforces `settings.max_pending_exclusive_orders` (default 2) per customer email and per client IP.
+  - Selective release of exclusive tracks: Expiry/cancellation queries strictly target `WHERE reserved_by_order_id = :order_id AND status = 'reserved'`, clearing `reserved_by_order_id = NULL` and `reserved_until = NULL`.
+- **Payment & Confirmation Module [Phase 2]**:
+  - VietQR integration: Generates standardized EMVCo payload strings locally in-house (no third-party API dependencies), encoding the transfer memo as `order_code`.
+  - Manual payment confirmation: Owner verifies bank statement and clicks `"Xác nhận đã nhận tiền"` (Confirm payment received) on the admin dashboard.
+  - Deadlock Avoidance Pattern: All reservation, release, and confirmation operations execute within a single database transaction locking the `orders` row first, followed by `tracks` rows ordered by ascending ID (`ORDER BY id ASC FOR UPDATE`).
+  - Handling `EXPIRED` orders on confirmation: Re-checks exclusive track availability via `reserved_by_order_id`. If an exclusive track was taken by another order, the system rejects the order (stays `EXPIRED`), records an audit payment with `payments.status = 'paid'`, and flags `orders.needs_refund = true` (100% refund).
+  - Manual Refund Completion: Owner issues bank refund and clicks `"Đánh dấu đã hoàn tiền"` (Mark as refunded), setting `orders.needs_refund = false`, `orders.payment_status = 'refunded'`, `payments.status = 'refunded'`, and saving the bank reference in `payments.notes`.
+  - Abstraction: Isolated behind the `PaymentProvider` interface, allowing pluggable webhook adapters in the future without modifying core business logic.
+- **File Protection & Delivery Module [Phase 2]**:
+  - Secure master file storage (WAV 24-bit / FLAC) in Private Object Storage (Cloudflare R2 or AWS S3). Zero master files committed to Git or stored in `public/`.
+  - Timed download token: When order becomes `PAID`, sets `orders.download_expires_at = confirmed_at + settings.download_valid_days` (default 30 days) and generates a 128+ bit cryptographically secure token stored as SHA-256 in `orders.download_token_hash`. Plaintext token exists only in the customer's email link.
+  - Download verification: Endpoint requires `orders.payment_status === 'paid'` (strictly rejects unpaid orders) and issues short-lived Pre-signed URLs (15-30 minute TTL) with `Content-Disposition: attachment`.
+  - Download auditing: Logs each download event per `order_item_id` in `download_logs`.
+- **Admin Dashboard Module [Phase 2]**: Private portal for the owner to upload tracks, edit prices and license tiers, manage orders (with `needs_refund` filtering), confirm payments, record refunds, and adjust operational settings (`hold_minutes`, `claimed_hold_hours`, `download_valid_days`, `max_pending_exclusive_orders`).
+
+### Phase 3 (Complete Release) [4 features]
+- **Custom Request Workflow Module [Phase 3]**: Full end-to-end custom composition management: Brief submission -> Quote (snapshots `deposit_percent` and `revision_limit` from `settings` into `custom_requests`) -> Deposit payment -> Demo audio upload -> Revision feedback loop (tracked in `custom_request_revisions`, bounded by `revision_limit`) -> Final payment -> Handover of master files and license.
+- **Customer Accounts Module [Phase 3]**: Secure authentication, order history lookup, active download access, and custom composition project tracking.
+- **Reviews Module [Phase 3]**: Verified buyer rating system (1 to 5 stars and comments) tied to unique `order_item_id` records.
+- **License PDF Generator Module [Phase 3]**: Automated generation of personalized copyright license PDFs per purchased `order_item`, stored in Object Storage.
 
 ---
 
-## 3. Sơ đồ Luồng Dữ liệu Chính (Data Flows)
+## 2. Core Tech Stack
 
-### 3.1. Luồng duyệt kho nhạc và nghe thử [Phase 1]
+The platform is structured as a unified TypeScript monorepo with minimal operational overhead:
+
+- **Fullstack Web Framework**: Next.js (TypeScript, App Router) with Tailwind CSS for frontend styling and Next.js Route Handlers (`src/app/api/...`) for RESTful API endpoints.
+- **Database & ORM**: PostgreSQL managed via Prisma ORM for schema definitions, migrations, and transactional type-safety.
+- **Object Storage**: S3-compatible Cloudflare R2 (or AWS S3):
+  - **Public Bucket / CDN**: Cover art images and compressed watermarked preview MP3s.
+  - **Private Bucket**: Master audio files (WAV/FLAC) and generated license PDFs.
+- **Audio Processing**: Internal standalone script / background worker running **FFmpeg** in the repository to compress audio and mix voice tags into preview files on upload.
+- **Email Delivery**: **Resend** abstracted behind an `EmailProvider` interface for order notifications, payment confirmations, and custom inquiry alerts.
+- **Containerization & DevOps**: Docker, Docker Compose for local development; GitHub Actions for automated CI; Git pre-commit hooks and CI checks configured in Phase 1 Week 1 to prevent audio files outside `public/audio/previews/**` from entering the repository.
+
+---
+
+## 3. Primary Data Flows
+
+### 3.1. Track Catalog Browsing and Audio Preview [Phase 1]
 ```
 Client (Browser/Mobile)
   │
   ├── 1. GET /api/tracks?genre=...&mood=...&q=... ──> Next.js Route Handler ──> PostgreSQL
   │                                                                                  │
-  │   <── Trả về danh sách metadata (Tiêu đề, Giá, BPM tham khảo, Cover URL) <──────┘
+  │   <── Returns track metadata (Title, Price, BPM info, Cover URL) <───────────────┘
   │
-  └── 2. Phát nhạc Audio Player ──> CDN / Cloudflare R2 Public hoặc /public/audio/previews/ (File MP3 Watermark)
+  └── 2. Audio Player Playback ──> CDN / Cloudflare R2 Public or /public/audio/previews/ (MP3 Watermark)
 ```
 
-### 3.2. Luồng mua nhạc, thanh toán thủ công và giao file [Phase 2]
+### 3.2. Purchasing, Manual Verification, and File Delivery [Phase 2]
 ```
-[1. Tạo đơn hàng]
-Khách hàng ──> POST /api/orders (chọn các track + license)
-            │
-            └──> Next.js Route Handler:
-                    - Tạo Order & OrderItems
-                    - Khóa các bài độc quyền: status = 'reserved', reserved_by_order_id = order.id,
-                      reserved_until = now() + (hold_minutes * interval '1 minute') (mặc định 60 phút)
-                    - Trả về mã VietQR (chuỗi EMVCo sinh nội bộ) kèm order_code
+[1. Order Creation]
+Customer ──> POST /api/orders (select tracks + licenses)
+             │
+             └──> Next.js Route Handler:
+                     - Checks pending order cap (max_pending_exclusive_orders)
+                     - Creates Order & OrderItems
+                     - Locks exclusive tracks: status = 'reserved', reserved_by_order_id = order.id,
+                       reserved_until = now() + (hold_minutes * interval '1 minute') (default 60 min)
+                     - Returns VietQR (EMVCo payload generated locally) with order_code
 
-[1b. Khách tùy chọn báo đã chuyển tiền]
-Khách hàng ──> POST /api/orders/:id/claim-paid
-            │
-            └──> Cập nhật orders.paid_claimed_at = now()
-                 Gia hạn reserved_until = now() + (claimed_hold_hours * interval '1 hour') (mặc định 24h)
-                 Gửi email thông báo cho chủ shop qua Resend
+[1b. Customer Optional Claim: "Tôi đã chuyển tiền"]
+Customer ──> POST /api/orders/:id/claim-paid
+             │
+             └──> Checks: Not already claimed? Order not EXPIRED or CANCELLED? Rate limit OK?
+                  - Updates orders.paid_claimed_at = now()
+                  - Extends reserved_until = now() + (claimed_hold_hours * interval '1 hour') (default 24h)
+                  - Sends email alert to store owner via Resend
 
-[2. Thanh toán & Xác nhận]
-Khách hàng ──> Quét mã VietQR chuyển khoản vào tài khoản ngân hàng chủ shop
-Chủ shop   ──> Kiểm tra số dư tài khoản ngân hàng
-            │
-            └──> Bấm "Xác nhận đã nhận tiền" trên Trang Quản Trị (Admin Panel)
-                    │
-                    └──> POST /api/admin/orders/:id/confirm-payment
-                            - Bắt đầu Transaction có Row-level lock:
-                              1. Khóa orders WHERE id = $1 FOR UPDATE
-                              2. Khóa tracks liên quan ORDER BY id ASC FOR UPDATE (tránh deadlock)
-                            - Kiểm tra: Nếu đơn EXPIRED -> Re-check bài độc quyền còn trống không qua reserved_by_order_id?
-                              + Nếu bài độc quyền đã mất/bị giữ -> từ chối toàn bộ đơn, đặt needs_refund = true (100% tiền)
-                              + Nếu bài độc quyền còn trống -> tiếp tục kích hoạt đơn
-                            - Cập nhật Order: status = 'paid', download_expires_at = now() + download_valid_days
-                            - Cập nhật Tracks độc quyền: status = 'sold_exclusive', reserved_by_order_id = order.id
-                            - Sinh download_token trên orders (hạn download_valid_days)
-                            - Tạo bản ghi Payments: confirmed_by, confirmed_at
-                            - Gửi email thông báo thanh toán thành công kèm link tải file (qua Resend)
+[2. Payment & Confirmation]
+Customer ──> Scans VietQR and executes bank transfer
+Owner    ──> Verifies bank statement balance and order_code memo
+             │
+             └──> Clicks "Xác nhận đã nhận tiền" on Admin Dashboard
+                     │
+                     └──> POST /api/admin/orders/:id/confirm-payment
+                             - Database Transaction with strict Row-level locking:
+                               1. Lock order: orders WHERE id = $1 FOR UPDATE
+                               2. Lock tracks: tracks WHERE id IN (...) ORDER BY id ASC FOR UPDATE
+                             - Check: If order is EXPIRED -> Re-check exclusive tracks via reserved_by_order_id
+                               + If exclusive track conflict: Reject order (stays EXPIRED),
+                                 insert payments row with status = 'paid', set orders.needs_refund = true
+                               + If exclusive tracks available: Activate order to PAID
+                             - Update Order: status = 'paid', download_expires_at = now() + download_valid_days,
+                               generate 128-bit download_token_hash (SHA-256)
+                             - Update Exclusive Tracks: status = 'sold_exclusive', reserved_by_order_id = order.id
+                             - Insert Payments record: status = 'paid', confirmed_by, confirmed_at
+                             - Send success email with download link containing plaintext token (via Resend)
 
-[3. Khách hàng nhận file]
-Khách hàng ──> Click link tải trong email: GET /api/downloads/:downloadToken
-            │
-            └──> Next.js Route Handler:
-                    - Kiểm tra hợp lệ của token & Order BẮT BUỘC đã PAID (từ chối nếu chưa PAID)
-                    - Kiểm tra thời hạn download_expires_at
-                    - Ghi nhận lịch sử vào download_logs theo từng order_item_id & tăng download_count
-                    - Sinh Pre-signed URL R2/S3 (TTL 15 - 30 phút, Content-Disposition: attachment)
-                    - 302 Redirect khách hàng tải trực tiếp file master từ Private Object Storage
+[2b. Manual Refund Flow (if conflict occurred on EXPIRED order)]
+Owner    ──> Issues manual bank transfer refund to customer
+             Clicks "Đánh dấu đã hoàn tiền" on Admin Dashboard
+             │
+             └──> POST /api/admin/orders/:id/mark-refunded
+                     - Updates orders: needs_refund = false, payment_status = 'refunded'
+                     - Updates payments: status = 'refunded', notes = refund bank reference
+
+[3. Customer Download Handover]
+Customer ──> Clicks download link in email: GET /api/downloads/:token
+             │
+             └──> Next.js Route Handler:
+                     - Hashes incoming token with SHA-256 and verifies against orders.download_token_hash (constant-time)
+                     - Validates order: MUST be payment_status === 'paid' (rejects otherwise)
+                     - Validates expiration: now() <= orders.download_expires_at
+                     - Logs download event in download_logs per order_item_id & increments download_count
+                     - Generates Pre-signed URL from R2/S3 (TTL 15 - 30 min, Content-Disposition: attachment)
+                     - 302 Redirects browser to download master file directly from Private Object Storage
 ```
 
-### 3.3. Luồng quy trình đặt sáng tác riêng [Phase 1 & Phase 3]
-- **Phase 1**: Khách gửi form -> Next.js Route Handler **lưu bản ghi vào `custom_requests` ĐỒNG THỜI gửi email** thông báo về hộp thư cá nhân của chủ website qua `EmailProvider` (Resend) -> Chủ website trao đổi trực tiếp qua email với khách.
-- **Phase 3 (Khép kín)**:
+### 3.3. Custom Request Workflow [Phase 1 & Phase 3]
+- **Phase 1**: Customer submits brief -> Next.js Route Handler **persists record into `custom_requests` AND simultaneously emails** inquiry to owner via `EmailProvider` (Resend) -> Owner liaises directly with customer via email.
+- **Phase 3 (Integrated Workflow)**:
 ```
-Khách hàng (Tài khoản) ──> Gửi yêu cầu đặt sáng tác (Brief, style, duration) ──> custom_requests
-                                                                                       │
-Chủ shop / Nhạc sĩ     ──> Nhập báo giá (quoted_price); hệ thống snapshot <────────────┘
-                                `deposit_percent` & `revision_limit` từ settings
-                                │
-Khách hàng             ──> Đồng ý báo giá, thanh toán đặt cọc (deposit_amount) qua VietQR
-                                │
-Chủ shop               ──> Xác nhận tiền cọc -> Tiến hành sáng tác -> Tải demo lên hệ thống
-                                │
-Khách hàng             ──> Nghe demo, gửi góp ý chỉnh sửa (custom_request_revisions)
-                                │  (Lặp lại trong giới hạn snapshot revision_limit)
-Khách hàng             ──> Duyệt demo cuối cùng -> Thanh toán số tiền còn lại (final payment)
-                                │
-Chủ shop               ──> Xác nhận thanh toán cuối -> Hệ thống bàn giao file master + Giấy phép PDF
+Customer (Account) ──> Submits custom request (Brief, style, duration) ──> custom_requests
+                                                                               │
+Owner / Composer   ──> Enters quote (quoted_price); system snapshots <─────────┘
+                       `deposit_percent` & `revision_limit` from settings
+                       │
+Customer           ──> Accepts quote, pays deposit (deposit_amount) via VietQR
+                       │
+Owner              ──> Confirms deposit -> Composes music -> Uploads watermarked demo
+                       │
+Customer           ──> Listens to demo, submits feedback (custom_request_revisions)
+                       │  (Repeats within snapshotted revision_limit)
+Customer           ──> Approves final demo -> Pays remaining balance (remaining_amount)
+                       │
+Owner              ──> Confirms final balance -> System delivers master files + License PDF
 ```

@@ -36,6 +36,8 @@ uploads/
 *.wav
 *.flac
 *.mp3
+!assets/watermark/
+!assets/watermark/**
 !public/audio/previews/
 !public/audio/previews/**
 public/masters/
