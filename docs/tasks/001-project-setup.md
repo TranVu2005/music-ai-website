@@ -19,12 +19,12 @@
     - Delete `build/deploy/.github/` (duplicate CI workflow; only the repository root `.github/workflows/ci.yml` is active).
     - Rewrite `build/deploy/Dockerfile`: remove `[STACK]`, build a single unified Next.js application image on port 3000 with non-root user (`nextjs:nodejs`), install OpenSSL on Alpine (`apk add --no-cache openssl`) for Prisma, retain FFmpeg/ffprobe, run `npx prisma generate` in builder stage, copy Prisma query engine into `.next/standalone`, and eliminate legacy `dist/backend/server.js`.
     - Rewrite `build/deploy/docker-compose.yml`: orchestrate PostgreSQL database (bound to loopback `127.0.0.1:5432` for dev security) and ONE unified `app` service on port 3000 (no backend/frontend split, no port 5000); load database credentials dynamically from environment variables.
-    - Rewrite `.env.example` for the actual project stack: `DATABASE_URL`, `S3_*` (Cloudflare R2 / AWS S3 only, no MinIO), `RESEND_API_KEY`, `EMAIL_FROM`, `OWNER_NOTIFICATION_EMAIL`, `MASTERS_DIR`, `APP_BASE_URL`. Remove PayOS/SePay/`PAYMENT_WEBHOOK_SECRET`, `JWT_SECRET` (deferred to Phase 3 auth), `SMTP_*`, and `PORT`/`BACKEND_URL`/`FRONTEND_URL`.
+    - Rewrite `.env.example` for the actual project stack: `DATABASE_URL` (pooled Neon connection for app runtime), `DIRECT_URL` (unpooled direct Neon connection for Prisma migrations), `APP_BASE_URL` (free onrender.com URL / localhost), `S3_*` (Cloudflare R2 / AWS S3 only, no MinIO), `RESEND_API_KEY`, `EMAIL_FROM=onboarding@resend.dev`, `OWNER_NOTIFICATION_EMAIL` (matching Resend registration email), and `MASTERS_DIR`. Remove PayOS/SePay/`PAYMENT_WEBHOOK_SECRET`, `JWT_SECRET` (deferred to Phase 3 auth), `SMTP_*`, and `PORT`/`BACKEND_URL`/`FRONTEND_URL`.
     - Translate all remaining Vietnamese comments in `ci.yml`, `Dockerfile`, `docker-compose.yml`, `.env.example`, and `.gitkeep` files into English.
   - Project directory structure & initial configuration:
     - `next.config.ts` (or `next.config.js`): Configure Next.js with `output: 'standalone'` so the build produces a self-contained `.next/standalone` folder executed by Dockerfile via `node server.js`.
     - `src/app/`: Next.js App Router root layout skeleton (`src/app/layout.tsx` with fonts and global styles) and API Route Handlers directory.
-    - `src/db/`: Prisma ORM configuration (`schema.prisma` lives in `src/db/` so migrations land in `src/db/migrations/`, configured via `prisma.config.ts` or the `--schema` flag). Copy `src/db/` before `npm ci` or execute `npx prisma generate` after copying source.
+    - `src/db/`: Prisma ORM configuration (`schema.prisma` lives in `src/db/` so migrations land in `src/db/migrations/`, configured via `prisma.config.ts` or the `--schema` flag). Configure the direct URL for migrations according to the Prisma version in use (schema.prisma directUrl where supported, prisma.config.ts otherwise) and record the choice in README.md. Copy `src/db/` before `npm ci` or execute `npx prisma generate` after copying source.
     - `src/db/migrations/`: Prisma ORM migration history directory.
     - `test/`: Test runner configuration with Vitest.
     - `.github/workflows/ci.yml`: Root automated CI workflow. Keep CI green by enabling dependency installation (`npm ci`), lint, test, and build steps once `package-lock.json` is committed in this task (noting `actions/setup-node` with `cache: 'npm'` requires a lockfile).
@@ -38,7 +38,7 @@
 - [x] Legacy scaffold directories (`src/backend/`, `src/frontend/`, `build/deploy/.github/`) removed. *(Pre-completed in `docs/task-amendments`; task executor verifies).*
 - [x] `build/deploy/Dockerfile` updated for single Next.js monorepo on port 3000 with non-root user, FFmpeg, OpenSSL, and Prisma engine copy. *(Pre-completed in `docs/task-amendments`; task executor verifies).*
 - [x] `build/deploy/docker-compose.yml` updated with PostgreSQL (bound to `127.0.0.1:5432:5432`) and single `app` service with env-driven credentials. *(Pre-completed in `docs/task-amendments`; task executor verifies).*
-- [x] `.env.example` updated with current stack variables (PostgreSQL, S3/R2, Resend, MASTERS_DIR, APP_BASE_URL). *(Pre-completed in `docs/task-amendments`; task executor verifies).*
+- [x] `.env.example` updated with current stack variables (pooled `DATABASE_URL`, direct `DIRECT_URL`, S3/R2, `EMAIL_FROM=onboarding@resend.dev`, `OWNER_NOTIFICATION_EMAIL`, `MASTERS_DIR`, `APP_BASE_URL`). *(Task executor verifies all entries and ensures `prisma:generate` and migration scripts work with `DIRECT_URL`).*
 - [ ] Directory structure initialized cleanly according to architecture design.
 - [ ] Next.js configured with `output: 'standalone'` in `next.config`.
 - [ ] Minimal `src/app/layout.tsx` skeleton created (fonts, global styles).
@@ -53,3 +53,4 @@
 - [ ] Test directory structure and presence of required configuration files.
 - [ ] Basic health check smoke test (`GET /api/health` returns HTTP 200 OK).
 - [ ] Docker container build and health smoke test: Container builds and serves `GET /api/health` returning 200 OK.
+- [ ] Prisma direct migration test: Verify `npx prisma migrate` scripts validate connection against `DIRECT_URL`.

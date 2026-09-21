@@ -248,6 +248,86 @@ All architectural decisions concerning in-house VietQR generation, EXPIRED order
 2. **Localization Cleanup**:
    - Translated Vietnamese comments in `test/.gitkeep`, `tools/.gitkeep`, and `src/db/migrations/.gitkeep` into English.
 
+---
+
+## 11. Phase 1 Free-Demo Hosting Strategy and Portability Architecture
+
+1. **Architectural Decision Record (`docs/decisions/hosting.md`)**:
+   - Recorded the finalized hosting strategy approved by the product owner:
+     - **Phase 1 Trial Demo (Milestone 1 Review)**: Render Free Web Service + Neon Free PostgreSQL as primary; Cloudflare Quick Tunnel from the developer workstation as emergency live fallback.
+     - **Phase 2 Production**: Dedicated/small paid VPS (e.g. Hetzner Cloud / DigitalOcean / Linode) with containerized PostgreSQL, finalized and provisioned before Week 6.
+   - Evaluated 5 options across monthly cost, key limits, Milestone 1 fit, and Phase 2 fit with official citations:
+     - (A) Cloudflare Quick Tunnel (TryCloudflare)
+     - (B) Render Free + Neon Free
+     - (C) Oracle Cloud Always Free VM
+     - (D) Small Paid VPS (Hetzner, DigitalOcean, Linode)
+     - (E) Vercel Hobby (strictly excluded due to non-commercial terms of service clause)
+   - Detailed Render free web service idle spin-down (15 minutes of inactivity, ~1 minute wake-up delay), 750 free instance hours/month cap, and Render's official stance that free instances are not for production.
+   - Detailed Neon free storage (0.5 GiB), 100 CU-hours/month compute cap, and scale-to-zero after 5 minutes of inactivity.
+   - Added pre-deployment checklist for the store owner to review commercial-use terms before deploying.
+
+2. **Hard Rule & Phase 2 Hosting Gate**:
+   - Added the hard rule: **"No real customer orders on any free tier"** across `docs/project-plan.md`, `docs/decisions/hosting.md`, `docs/tasks/009-deploy-acceptance.md`, `docs/architecture/overview.md`, and `CLAUDE.md`.
+   - Added Phase 2 Hosting Gate in `docs/project-plan.md`: hosting decision is final (paid VPS) before week 6 because admin track uploads require a persistent FFmpeg background worker and exclusive reservation hold-expiry sweeps require a deterministic scheduler.
+
+3. **Task 009 Deployment Specifications (`docs/tasks/009-deploy-acceptance.md`)**:
+   - Formalized Step 1 as the ADR in `docs/decisions/hosting.md` with pre-deploy sign-off.
+   - Formalized Step 2 as Render Free deployment using Docker runtime (`build/deploy/Dockerfile`) with justification (parity, OpenSSL, FFmpeg bundling, and standalone memory optimization).
+   - Documented exact Render settings: Dockerfile path, context, health check path `/api/health`, and environment variables.
+   - Analyzed Render pre-deploy command availability: official Render docs confirm pre-deploy commands are only available on paid instances. Documented that Prisma migrations must run against `DIRECT_URL` from the developer machine or CI before deploy.
+   - Added reminder to Milestone 1 checklist: *"Open the demo URL 1-2 minutes before the review meeting (free web service spins down after idle)."*
+
+4. **Environment Variables & Task 001 Alignment (`.env.example` & `docs/tasks/001-project-setup.md`)**:
+   - `.env.example`: Configured Neon pooled `DATABASE_URL` for app runtime and unpooled direct `DIRECT_URL` for Prisma migrations. Configured `EMAIL_FROM=onboarding@resend.dev` with note that `OWNER_NOTIFICATION_EMAIL` must equal the Resend account owner's email address on the free tier. Set `APP_BASE_URL` to Render free URL with localhost comments.
+   - `docs/tasks/001-project-setup.md`: Added verification requirement that task executor checks `.env.example` entries and ensures `prisma:generate` and migration scripts work with `DIRECT_URL`.
+
+5. **Rate Limiter Portability (`docs/tasks/008-request-form.md`)**:
+   - Clarified that in-memory rate limiting is acceptable for the single-instance Render free demo, while keeping the `RateLimiter` interface with pluggable implementations (`MemoryRateLimiter` and shared store e.g. `RedisRateLimiter`) for future multi-instance VPS scaling.
+
+6. **Portability and Hosting Guardrails (`docs/architecture/overview.md` & `CLAUDE.md`)**:
+   - Enforced vendor-agnostic application code (no `@vercel/kv`, `@vercel/blob`, Edge runtime, or vendor cron configs; all platform-specific integrations isolated behind interfaces).
+   - Enforced Docker image portability (`build/deploy/Dockerfile`) across local development, Render demo, and paid VPS.
+   - Documented production VPS migration path via `pg_dump`/`restore`, DNS TTL reduction, and `.env.example` configuration.
+
+7. **Live Demo Fallback in `README.md`**:
+   - Added "Live demo fallback" section with exact commands (`docker compose up`, `npm run dev`, `cloudflared tunnel --url http://localhost:3000`) and operational limitations (random URL, no SLA, stops on machine sleep). Added `docs/decisions/` to the directory structure tree.
+
+---
+
+## 12. Hosting Decision Revisions, Baseline VPS Specifications, and PR #3 Review Fixes
+
+1. **Option D VPS Baseline & Verified Pricing (`docs/decisions/hosting.md`)**:
+   - Replaced stale 1 GB VPS pricing with the required technical baseline of **2 vCPU / 4 GB RAM** necessary to run Next.js server rendering, PostgreSQL container, and Phase 2 FFmpeg background worker.
+   - Sourced and cited DigitalOcean Basic Droplet ($24.00/mo, `digitalocean.com/pricing/droplets`).
+   - Sourced Hetzner Cloud price adjustments of 15 June 2026 (`docs.hetzner.com`), noting that 2 vCPU / 4 GB plans (CX23/CPX21) start around €5.99–€7.72/mo (excl. VAT) with CX/CAX stock availability marked "verify before use".
+   - Added domestic Vietnamese providers (FPT Cloud, Viettel IDC, Vietnix) as an Option D variant with VND billing, official VAT invoice (hóa đơn GTGT) support, and low domestic latency; noted caveats regarding promotional pricing (often requiring 12-36 months prepayment and excluding VAT).
+   - Provided overall monthly cost range ($7 to $24 / month, ~180,000 to 600,000 VND / month) based on exchange rate assumptions ($1 ≈ 25,000 VND, €1 ≈ 27,500 VND; verify before use).
+
+2. **Oracle Always Free Specifications (`docs/decisions/hosting.md`)**:
+   - Documented the reported Always Free Ampere A1 adjustment around 15 June 2026 from 4 OCPU / 24 GB to 2 OCPU / 12 GB (1,500 OCPU hours, 9,000 GB hours/mo; marked "verify before use" on active tenancy).
+   - Sourced the 7-day 20% idle compute reclamation policy directly to `docs.oracle.com Always Free Resources` documentation.
+   - Removed unverified credit-card identity check claims.
+
+3. **Quote Verification & Wording Paraphrases (`docs/decisions/hosting.md` & `docs/tasks/009-deploy-acceptance.md`)**:
+   - Replaced Render quotes with verified paraphrases citing official documentation (`render.com/docs/free`).
+   - Highlighted Render's explicit documentation notice that free instances must not be used for production applications.
+   - Clarified that pre-deploy commands are only supported on paid instances, confirming Prisma migrations must execute against `DIRECT_URL` prior to deployment.
+
+4. **Vercel Hobby Plan Refinements (`docs/decisions/hosting.md`)**:
+   - Removed unverified "10-15 seconds" function duration limit while retaining the core non-commercial fair-use clause from `vercel.com/docs/limits/fair-use-guidelines`.
+
+5. **Evaluation Matrix & Link Corrections (`docs/decisions/hosting.md`)**:
+   - Removed all subjective "x/10" rating scores across all options and the comparison table in favor of concise factual fit/does not fit statements.
+   - Fixed broken markdown link for Neon in the pre-deploy checklist and updated Neon documentation URLs to `neon.com`.
+
+6. **Active Local Defaults in Environment Template (`.env.example`)**:
+   - Preserved active local development defaults (`127.0.0.1` PostgreSQL and `http://localhost:3000`) so `cp .env.example .env` functions immediately out of the box with Docker Compose.
+   - Moved Render and Neon pooled/direct connection strings into commented Phase 1 demo lines.
+
+7. **Prisma Configuration Portability (`docs/tasks/001-project-setup.md`)**:
+   - Updated Prisma migration instructions to configure the direct URL according to the Prisma version in use (`schema.prisma` `directUrl` where supported, `prisma.config.ts` otherwise) and record the choice in `README.md`.
+   - Removed duplicate Prisma validation entry from Definition of Done.
+
 
 
 

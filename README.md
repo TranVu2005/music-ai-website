@@ -21,6 +21,8 @@ music-shop/
 │   │   ├── database-schema.md          # Database tables and column definitions
 │   │   ├── payment-flow.md             # VietQR payment, deadlock avoidance & manual confirmation flow
 │   │   └── file-protection.md          # Master audio protection & watermarked preview delivery
+│   ├── decisions/                      # Architectural decision records (ADRs)
+│   │   └── hosting.md                  # Hosting strategy for Phase 1 demo and Phase 2 production
 │   └── tasks/                          # Task-based implementation work packages
 │       ├── _template.md                # Standardized task documentation template
 │       └── 001-project-setup.md        # Monorepo setup task with Next.js & Vitest
@@ -53,3 +55,18 @@ The project strictly follows a **Docs-First** methodology:
    ```
 2. Configure required environment variables in `.env`.
 3. Follow project setup instructions in [Task 001](./docs/tasks/001-project-setup.md).
+
+## Live demo fallback
+
+If the primary cloud demo service (Render) is spinning up or unavailable during a review meeting, run the local fallback from the developer machine:
+
+```bash
+docker compose -f build/deploy/docker-compose.yml up -d
+npm run dev
+cloudflared tunnel --url http://localhost:3000
+```
+
+**Limitations**:
+- Random URL per run
+- No uptime guarantee
+- Stops when the machine sleeps

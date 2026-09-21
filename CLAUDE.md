@@ -23,3 +23,9 @@ This document outlines mandatory engineering principles for developers and AI co
 ## 4. Strict Scope Boundary
 - **Do not modify beyond task scope**: Only modify files and implement behaviors explicitly defined in the **Scope** section of the active task document.
 - If technical debt or refactoring opportunities are discovered outside the task scope, record them as a new task in `docs/tasks/` rather than expanding the current task.
+
+## 5. Portability and Hosting Guardrails
+- **Hard Rule**: "No real customer orders on any free tier." Free tiers (Render web service, Neon Postgres, Cloudflare quick tunnels) are strictly restricted to Phase 1 preview demonstration and stakeholder review. Real customer orders must NEVER run on any free tier; Phase 2 commercial sales require the paid VPS.
+- **No Hosting-Vendor-Specific APIs**: Do not use hosting-vendor-specific APIs in application code (no `@vercel/kv`, `@vercel/blob`, Edge runtime, or vendor proprietary cron configurations). Anything platform-specific must sit behind a TypeScript interface (e.g., `EmailProvider`, `PaymentProvider`, `RateLimiter`).
+- **Container Parity**: The Docker image path (`build/deploy/Dockerfile`) must keep working for the later VPS as well as local development and the Render free demo.
+- **VPS Migration Path**: Maintain an explicit migration path to the VPS: `pg_dump`/`restore` from Neon, DNS TTL lowered beforehand, and environment variables cataloged in `.env.example`.
