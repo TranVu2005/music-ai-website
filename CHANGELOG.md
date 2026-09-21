@@ -195,3 +195,22 @@ All architectural decisions concerning in-house VietQR generation, EXPIRED order
 6. **English Gloss on Client Plan Title**:
    - Added English gloss to the source document title across `docs/project-plan.md` and `CHANGELOG.md`: *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version").
 
+---
+
+## 8. Phase 1 Task Specifications & Documentation Fixes
+
+1. **Task Documentation Fixes**:
+   - `docs/tasks/001-project-setup.md`: Removed `"via Vitest"` from the lint/type-check/build Definition of Done criterion. Added explicit specification that `schema.prisma` lives in `src/db/` so migrations land in `src/db/migrations/` (configured via `prisma.config.ts` or the `--schema` flag). Added explicit Out of Scope subsection.
+   - `README.md`: Updated directory tree diagram to include `.env.example`, `assets/watermark/`, and `public/audio/previews/`.
+
+2. **Creation of Phase 1 Task Files (`docs/tasks/002` through `009`)**:
+   - `docs/tasks/002-prisma-schema-seed.md`: Initial Prisma schema and Migration 1 restricted strictly to `users`, `tracks`, and `custom_requests`. Explicitly excluded `tracks.reserved_by_order_id` (deferred to Phase 2). Idempotent seed script inserting 5 sample tracks pointing to preview placeholders in `public/audio/previews/`.
+   - `docs/tasks/003-preview-generator.md`: CLI preview generation utility converting master audio to 128 kbps 44.1 kHz stereo MP3 in `public/audio/previews/<slug>.mp3` with periodic voice tag mixed in every 20-30 seconds. Reading from external `MASTERS_DIR` outside repository. FFmpeg container setup.
+   - `docs/tasks/004-catalog-api.md`: Next.js Route Handlers for `GET /api/tracks` (published tracks, keyword search, genre/mood filters, pagination), `GET /api/tracks/[slug]`, and `GET /api/filters`. Enforced BPM as non-filterable reference metadata and zero exposure of `original_file_key`.
+   - `docs/tasks/005-ui-design.md`: Static HTML/Tailwind prototypes of Home and Catalog pages (desktop and mobile) in `design/` with Vietnamese copy placeholders. Established as mandatory client approval gate for Tasks 006 and 007.
+   - `docs/tasks/006-static-pages.md`: Foundational layout and static pages (Home, About, Contact, Pricing from configuration). Responsive design, SEO metadata, and centralized Vietnamese dictionary file (`src/lib/i18n/vi.ts`).
+   - `docs/tasks/007-catalog-ui-player.md`: Public catalog browsing page, track detail page, and persistent responsive audio preview player with single-stream playback concurrency and BPM display metadata.
+   - `docs/tasks/008-request-form.md`: Custom music request page and `POST /api/custom-requests` handler with Zod validation, dual-persistence (database insert before email dispatch), resilient email failure handling, `EmailProvider` interface (`ResendEmailProvider` and `ConsoleEmailProvider`), honeypot spam protection, and rate limiting.
+   - `docs/tasks/009-deploy-acceptance.md`: Two-step deployment process: authoring `docs/decisions/hosting.md` (Vercel vs Docker VPS) with deployment hold pending owner approval, followed by test domain deployment and execution of the Milestone 1 client plan acceptance checklist (`docs/acceptance/milestone-1.md`).
+
+
