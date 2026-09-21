@@ -34,8 +34,11 @@ tmp/
 temp/
 uploads/
 *.wav
-*.mp3
 *.flac
+*.mp3
+!public/audio/
+!public/audio/*.mp3
+public/masters/
 
 # IDE & OS files
 .DS_Store

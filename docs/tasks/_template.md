@@ -1,10 +1,10 @@
 # Task: [Tên Task]
 
 ## 1. Mục tiêu
-- TODO: Mô tả ngắn gọn, rõ ràng mục tiêu cần đạt được trong task này.
+- Mô tả ngắn gọn, rõ ràng mục tiêu cần đạt được trong task này.
 
 ## 2. Đọc trước (link docs)
-- TODO: Liệt kê các tài liệu kiến trúc và nghiệp vụ cần đọc trước khi bắt đầu:
+- Liệt kê các tài liệu kiến trúc và nghiệp vụ cần đọc trước khi bắt đầu:
   - [Requirements](../requirements/requirements.md)
   - [Architecture Overview](../architecture/overview.md)
   - [Database Schema](../architecture/database-schema.md)
@@ -13,19 +13,19 @@
   - [CLAUDE.md](../../CLAUDE.md)
 
 ## 3. Phạm vi
-- TODO: Các thành phần, thư mục, file nằm trong phạm vi thực hiện của task:
+- Các thành phần, thư mục, file nằm trong phạm vi thực hiện của task:
   - Cho phép thay đổi: ...
-- TODO: Những điều tuyệt đối KHÔNG sửa đổi trong task này (ngoài phạm vi):
+- Những điều tuyệt đối KHÔNG sửa đổi trong task này (ngoài phạm vi):
   - Không thay đổi: ...
 
 ## 4. Tiêu chí hoàn thành
-- TODO: Danh sách các điều kiện cụ thể để coi task là hoàn thành (Definition of Done):
+- Danh sách các điều kiện cụ thể để coi task là hoàn thành (Definition of Done):
   - [ ] Tiêu chí 1: ...
   - [ ] Tiêu chí 2: ...
   - [ ] Đã chạy linter và type check không còn lỗi.
 
 ## 5. Test cần có
-- TODO: Danh sách các bài kiểm thử bắt buộc:
+- Danh sách các bài kiểm thử bắt buộc:
   - [ ] Unit test: ...
   - [ ] Integration test: ...
   - [ ] Test case cho thanh toán / quyền tải file (nếu liên quan).
