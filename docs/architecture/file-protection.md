@@ -14,7 +14,7 @@
   - FFmpeg tự động trộn (mix) một đoạn voice tag ngắn ("Music Preview" hoặc tên thương hiệu nghệ sĩ) lặp lại định kỳ mỗi **20 đến 30 giây** xuyên suốt bài hát.
   - Âm lượng voice tag được cân chỉnh vừa đủ để người nghe vẫn cảm nhận được giai điệu và nhạc cụ, nhưng hoàn toàn vô dụng nếu kẻ xấu có ý định thu âm lại hoặc tách nhạc sử dụng thương mại.
 - **Lưu trữ và phân phối bản Preview**:
-  - **Giai đoạn 1 (Phase 1)**: Bản preview MP3 có thể lưu trữ tạm thời trong thư mục `public/audio` của dự án để phục vụ bản chạy thử nhanh chóng.
+  - **Giai đoạn 1 (Phase 1)**: Bản preview MP3 có watermark được đặt trong thư mục `public/audio/previews/` của dự án để phục vụ bản chạy thử nhanh chóng.
   - **Giai đoạn 2 trở đi (Phase 2+)**: Lưu trữ trên **Public Bucket** của Cloudflare R2 (hoặc AWS S3) kết hợp với CDN có hỗ trợ HTTP Range Requests và cache hiệu năng cao, đảm bảo người dùng nghe thử trên điện thoại hoặc máy tính mượt mà.
 
 ---
@@ -25,14 +25,18 @@
   - File bàn giao cho khách hàng là file âm thanh nguyên bản không nén hoặc nén không suy giảm chất lượng (Lossless: **WAV 24-bit / 48kHz hoặc 96kHz, FLAC** hoặc MP3 320kbps nguyên gốc không watermark).
 - **Quy tắc an toàn bất khả xâm phạm (Zero-Leak Policy)**:
   - **File master tuyệt đối KHÔNG BAO GIỜ được commit vào Git repository hoặc đặt trong thư mục `public/`**.
-  - File `.gitignore` của dự án bắt buộc phải có các quy tắc chặn nghiêm ngặt:
+  - File `.gitignore` của dự án áp dụng quy tắc chặn toàn bộ file âm thanh và chỉ mở ngoại lệ (allowlist) duy nhất cho thư mục demo preview:
     ```gitignore
-    # Chặn toàn bộ file master gốc và thư mục nháp
+    # Chặn toàn bộ file âm thanh master và thư mục nháp
     *.wav
     *.flac
-    /public/masters/
-    /uploads/
+    *.mp3
+    !public/audio/previews/
+    !public/audio/previews/**
+    public/masters/
+    uploads/
     ```
+  - **Cơ chế kiểm soát đa tầng (Defense in Depth)**: Ngoài `.gitignore`, hệ thống thiết lập pre-commit hook và CI pipeline kiểm tra tự động kích thước file và phần mở rộng, ngăn chặn tuyệt đối trường hợp lập trình viên vô tình commit file master vào mã nguồn.
 - **Cấu hình bảo mật Private Object Storage**:
   - File gốc được lưu trữ hoàn toàn trong **Private Bucket** trên Cloudflare R2 (hoặc AWS S3).
   - Nghiêm cấm mọi quyền đọc/ghi công khai (Block Public Access: bật 100%).

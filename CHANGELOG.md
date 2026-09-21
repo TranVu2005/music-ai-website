@@ -124,3 +124,36 @@ Theo yêu cầu điều chỉnh chi tiết từ Product Owner, các điểm sau 
 ## 4. Danh mục Câu Hỏi Mở (Đã Được Giải Quyết)
 
 Tất cả các câu hỏi mở trước đó liên quan đến cơ chế sinh mã VietQR, xử lý đơn `EXPIRED`, dịch vụ gửi email và lưu trữ file preview ở Phase 1 đã được Product Owner giải quyết dứt điểm và tích hợp đầy đủ vào tài liệu kiến trúc như đã nêu trong mục 3 ở trên.
+
+---
+
+## 5. Phụ Lục Bổ Sung (Addendum to Step 1)
+
+Theo các yêu cầu kiểm tra đối chiếu chi tiết bổ sung (Addendum items 7 - 12), các thay đổi sau đã được áp dụng đồng bộ trên toàn bộ tài liệu:
+
+1. **Cô lập Đơn giữ chỗ với `tracks.reserved_by_order_id` & Kế hoạch QA [Phase 2]**:
+   - Bổ sung cột `tracks.reserved_by_order_id` (UUID, FK -> `orders.id`, Nullable).
+   - Được gán giá trị khi giữ chỗ (`reserve`) và khi thanh toán thành công độc quyền (`sold_exclusive`).
+   - Mọi thao tác giải phóng (hết hạn, hủy đơn, quét định kỳ) **chỉ được phép** tác động lên: `WHERE reserved_by_order_id = :order_id AND status = 'reserved'`, sau đó xóa trắng `reserved_by_order_id = NULL` và `reserved_until = NULL`.
+   - Khi Admin duyệt đơn `EXPIRED`, bước kiểm tra *"bài hát đang bị giữ bởi đơn khác"* sử dụng điều kiện `reserved_by_order_id IS NOT NULL AND reserved_by_order_id <> :current_order_id`.
+   - Bổ sung mục QA Plan trong `payment-flow.md` và `project-plan.md` kiểm thử ca: Đơn A hết hạn, Đơn B giữ cùng bài đó, sau đó Đơn A bị hủy hoặc cron quét lại; trạng thái giữ chỗ của đơn B phải được bảo toàn nguyên vẹn 100%.
+
+2. **Chuyển `orders.download_expires_at` sang Nullable & Xác thực Endpoint [Phase 2]**:
+   - `orders.download_expires_at` ban đầu là `NULL`, chỉ được tính toán và gán giá trị bằng `confirmed_at + (settings.download_valid_days * interval '1 day')` ngay tại thời điểm đơn hàng chuyển thành công sang trạng thái `paid`.
+   - Endpoint tải file bảo mật (`/api/downloads/[token]`) bắt buộc từ chối (HTTP 403 / 404) bất kỳ yêu cầu tải nào nếu đơn hàng chưa ở trạng thái `paid`.
+
+3. **Thời gian giữ chỗ động `settings.claimed_hold_hours` [Phase 2]**:
+   - Thay thế hoàn toàn chuỗi hardcode `'24 hours'` trong `payment-flow.md` bằng giá trị động từ cấu hình: `(settings.claimed_hold_hours * interval '1 hour')`.
+   - Đồng bộ câu chữ mô tả trường `orders.paid_claimed_at` trong `database-schema.md` sang `settings.claimed_hold_hours` (mặc định 24h).
+
+4. **Quy tắc `tracks.original_file_key` theo từng giai đoạn [Phase 1 & Phase 2]**:
+   - Trong Phase 1: `tracks.original_file_key` được phép mang giá trị `NULL` (hỗ trợ seed dữ liệu hoặc demo bài hát tĩnh chưa có file master trên Object Storage).
+   - Từ Phase 2 trở đi: Để một bài hát chuyển sang trạng thái `published`, hệ thống bắt buộc kiểm tra `tracks.original_file_key IS NOT NULL` và file master phải tồn tại hợp lệ trên Private Object Storage (R2/S3).
+
+5. **Lưu trữ Kép cho Form Đặt Sáng Tác (Feature 5) [Phase 1]**:
+   - Làm rõ cơ chế xử lý của Form Đặt sáng tác (Feature 5) ngay từ Phase 1: Dữ liệu gửi từ khách hàng **vừa được lưu bền vững vào bảng `custom_requests`** trong cơ sở dữ liệu, **vừa gửi email thông báo trực tiếp đến chủ website** thông qua Resend `EmailProvider`.
+
+6. **Đặc tả File `.gitignore` Thực tế & Phòng thủ Đa tầng [File Protection]**:
+   - Cập nhật `.gitignore` với danh sách loại trừ nghiêm ngặt: chặn toàn bộ `*.wav`, `*.flac`, `*.mp3`, `public/masters/`, `uploads/`.
+   - Chỉ cho phép ngoại lệ đối với file preview nén chất lượng thấp phục vụ nghe thử công khai: `!public/audio/previews/` và `!public/audio/previews/**`.
+   - Bổ sung quy định kiểm tra bảo mật đa tầng: Pre-commit hook chặn commit file master và CI pipeline kiểm tra dung lượng cùng định dạng file trong PR.

@@ -110,10 +110,11 @@ claimed_hold_hours)          │                       │
 - **Hành động "Tôi đã chuyển tiền" (I have transferred) [Phase 2]**:
   - Sau khi chuyển khoản, khách hàng có thể bấm nút "Tôi đã chuyển tiền" trên giao diện đơn hàng.
   - Hệ thống ghi nhận mốc thời gian `orders.paid_claimed_at = now()`.
-  - Tự động kéo dài thời hạn giữ chỗ của các bài độc quyền trong đơn lên `settings.claimed_hold_hours` (mặc định **24 giờ**): `tracks.reserved_until = now() + interval '24 hours'`.
+  - Tự động kéo dài thời hạn giữ chỗ của các bài độc quyền trong đơn lên `settings.claimed_hold_hours` (mặc định 24 giờ): `tracks.reserved_until = now() + (settings.claimed_hold_hours * interval '1 hour')`.
   - Gửi email thông báo cho chủ website để ưu tiên kiểm tra và đối soát đơn hàng.
-- **Khóa tạm thời bài độc quyền**:
-  - Mọi bài hát có giấy phép độc quyền (`exclusive`) nằm trong đơn hàng đều đồng thời được chuyển `tracks.status = 'reserved'`.
+- **Khóa tạm thời bài độc quyền qua `reserved_by_order_id`**:
+  - Mọi bài hát có giấy phép độc quyền (`exclusive`) nằm trong đơn hàng đều đồng thời được chuyển `tracks.status = 'reserved'`, gán `tracks.reserved_by_order_id = orders.id` và ghi nhận `tracks.reserved_until`.
+  - Liên kết định danh `reserved_by_order_id` đảm bảo xác định chính xác đơn hàng đang giữ chỗ bài hát.
 
 ### 3.2. Cơ chế Phòng tránh Deadlock (Deadlock Avoidance Pattern) [Phase 2]
 Đối với các đơn hàng chứa nhiều bài hát độc quyền, thao tác **giữ chỗ (reserve)**, **giải phóng (release)**, hoặc **xác nhận (confirm)** bắt buộc phải thực thi trong cùng một Database Transaction và tuân thủ nghiêm ngặt quy tắc khóa:
@@ -134,17 +135,24 @@ claimed_hold_hours)          │                       │
 - Được kích hoạt khi chủ website nhấn nút **"Xác nhận đã nhận tiền"** trên trang quản trị.
 - Kiểm tra tính nguyên tử (Idempotency): Nếu `orders.payment_status === 'paid'`, bỏ qua giao dịch.
 - Nếu hợp lệ, transaction thực hiện:
-  1. Cập nhật `orders.payment_status = 'paid'`, `orders.updated_at = now()`.
+  1. Cập nhật `orders.payment_status = 'paid'`, `orders.download_expires_at = now() + (settings.download_valid_days * interval '1 day')`, `orders.updated_at = now()`.
   2. Tạo bản ghi `payments`: `status = 'paid'`, `confirmed_by = admin_user_id`, `confirmed_at = now()`.
-  3. Cập nhật toàn bộ các bài hát độc quyền trong `order_items`: chuyển `tracks.status = 'sold_exclusive'`, xóa `tracks.reserved_until`, gỡ bài khỏi kho nhạc công khai.
-  4. Tạo mã `download_token` cho đơn hàng trên bảng `orders` với thời hạn hiệu lực `download_expires_at = now() + (settings.download_valid_days * interval '1 day')`.
+  3. Cập nhật toàn bộ các bài hát độc quyền trong `order_items`: chuyển `tracks.status = 'sold_exclusive'`, gán `tracks.reserved_by_order_id = orders.id`, xóa `tracks.reserved_until`, gỡ bài khỏi kho nhạc công khai.
+  4. Tạo mã `download_token` cho đơn hàng trên bảng `orders` (nếu chưa có).
   5. [Phase 3] Kích hoạt tiến trình tự động sinh file giấy phép bản quyền PDF cho từng `order_item` và lưu đường dẫn vào `order_items.license_pdf_url`.
   6. Gửi email xác nhận thanh toán thành công cho khách hàng (`customer_email`) qua `EmailProvider` (Resend) kèm link tải an toàn chứa `download_token`.
 
 ### 3.4. Trạng thái `EXPIRED` & `CANCELLED` [Phase 2]
 - Nếu quá hạn giữ chỗ (`hold_minutes` hoặc `claimed_hold_hours` nếu có `paid_claimed_at`), đơn hàng chuyển sang `EXPIRED`.
-- Toàn bộ các bài độc quyền trong đơn được giải phóng đồng thời: `tracks.status = 'published'`, xóa `tracks.reserved_until`.
-- Khi đơn bị hủy (`CANCELLED`), bài độc quyền cũng được giải phóng tương tự.
+- **Giải phóng có chọn lọc qua `reserved_by_order_id`**:
+  - Thao tác giải phóng chỉ được cập nhật các bản ghi thỏa mãn:
+    ```sql
+    UPDATE tracks 
+    SET status = 'published', reserved_by_order_id = NULL, reserved_until = NULL
+    WHERE reserved_by_order_id = :order_id AND status = 'reserved';
+    ```
+  - Tuyệt đối không giải phóng những bài hát đã được đơn hàng khác giữ chỗ mới.
+- Khi đơn bị hủy (`CANCELLED`), bài độc quyền cũng được giải phóng với điều kiện lọc tương tự.
 
 ---
 
@@ -161,7 +169,7 @@ Admin bấm "Xác nhận đã nhận tiền" trên đơn EXPIRED
                       │
                       ▼
 [Kiểm tra tính khả dụng (Re-check availability)
- của toàn bộ bài hát độc quyền trong đơn]
+ của toàn bộ bài hát độc quyền trong đơn qua reserved_by_order_id]
                       │
         ┌─────────────┴─────────────┐
         ▼                           ▼
@@ -172,15 +180,17 @@ Admin bấm "Xác nhận đã nhận tiền" trên đơn EXPIRED
 - Cho phép kích hoạt đơn     - TỪ CHỐI TOÀN BỘ ĐƠN HÀNG
 - Order -> PAID             - Giữ Order -> EXPIRED
 - Tracks -> sold_exclusive   - Thiết lập orders.needs_refund = true (100% tiền)
-- Cấp quyền tải & gửi email  - Tạo bản ghi payments: status = 'refunded' / 'failed'
-                             - Hiển thị trên bộ lọc "Cần hoàn tiền" để Admin chuyển khoản lại
+  (reserved_by_order_id = order.id) - Tạo bản ghi payments: status = 'refunded' / 'failed'
+- Cấp quyền tải & gửi email  - Hiển thị trên bộ lọc "Cần hoàn tiền" để Admin chuyển khoản lại
 ```
 
-1. **Kiểm tra tính khả dụng**:
+1. **Kiểm tra tính khả dụng qua `reserved_by_order_id`**:
    - Hệ thống khóa đơn hàng và khóa các bài hát độc quyền trong đơn theo `id ASC FOR UPDATE`.
-   - Kiểm tra xem có bài nào đã chuyển sang `sold_exclusive` hoặc đang bị đơn hàng khác giữ (`status = 'reserved'`).
+   - Một bài hát độc quyền bị coi là **không còn khả dụng** nếu thỏa mãn một trong hai điều kiện:
+     1. Bài hát đã bán: `tracks.status = 'sold_exclusive'`.
+     2. Bài hát đang bị đơn hàng khác giữ chỗ hợp lệ: `tracks.status = 'reserved' AND (tracks.reserved_by_order_id IS DISTINCT FROM :order_id OR tracks.reserved_until > now())`.
 2. **Quyết định xử lý**:
-   - **Nếu tất cả bài độc quyền còn trống**: Kích hoạt đơn hàng bình thường sang `PAID`, gỡ bài khỏi kho nhạc và gửi link tải.
+   - **Nếu tất cả bài độc quyền còn trống**: Kích hoạt đơn hàng bình thường sang `PAID`, chuyển bài sang `sold_exclusive` với `reserved_by_order_id = :order_id`, cấp thời hạn `download_expires_at` và gửi link tải.
    - **Nếu có ít nhất một bài độc quyền đã mất**:
      - **Từ chối toàn bộ đơn hàng**, giữ nguyên trạng thái `orders.payment_status = 'expired'`.
      - Thiết lập cột boolean **`orders.needs_refund = true`** cho 100% số tiền đơn hàng.
@@ -195,8 +205,9 @@ Admin bấm "Xác nhận đã nhận tiền" trên đơn EXPIRED
    `https://musicshop.vn/downloads?token=sec_abc123...` (token nằm trên bảng `orders`).
 2. **Xác thực tại App Endpoint**:
    - Khi khách hàng truy cập liên kết, hệ thống gọi endpoint Route Handler: `GET /api/downloads/:token`.
-   - Kiểm tra mã `token` tồn tại trong bảng `orders` và `orders.payment_status === 'paid'`.
-   - Kiểm tra thời hạn: `now() <= orders.download_expires_at` (30 ngày mặc định theo `settings.download_valid_days`).
+   - Kiểm tra mã `token` tồn tại trong bảng `orders`.
+   - **Bắt buộc từ chối ngay lập tức nếu đơn hàng chưa thanh toán**: Nếu `orders.payment_status !== 'paid'`, trả về mã lỗi HTTP 403 Forbidden.
+   - Kiểm tra thời hạn: `orders.download_expires_at IS NOT NULL` và `now() <= orders.download_expires_at` (30 ngày kể từ khi thanh toán thành công).
 3. **Sinh Pre-signed URL ngắn hạn**:
    - Sau khi xác thực hợp lệ, ứng dụng sinh Pre-signed URL trực tiếp từ Private Bucket (Cloudflare R2 / AWS S3) cho từng file master của `order_items`.
    - Pre-signed URL được giới hạn thời gian sống cực ngắn (**TTL từ 15 đến 30 phút**).
@@ -204,3 +215,16 @@ Admin bấm "Xác nhận đã nhận tiền" trên đơn EXPIRED
 4. **Lưu vết & Kiểm soát**:
    - Mỗi lần phát sinh lượt tải, hệ thống ghi nhận vào bảng `download_logs` theo từng `order_item_id` cụ thể (IP, User-Agent, thời gian tải).
    - Tăng chỉ số `order_items.download_count` phục vụ theo dõi và chống lạm dụng.
+
+---
+
+## 6. Kịch bản Kiểm thử Nghiệp vụ Trọng yếu (QA Plan)
+
+- **Kịch bản Cô lập Giữ chỗ khi Hủy / Quét Đơn Hết hạn (Hold Isolation on Release/Sweep)**:
+  1. **Bước 1**: Đơn hàng A được tạo chứa bài độc quyền T -> T chuyển sang `status = 'reserved'`, `reserved_by_order_id = A.id`, `reserved_until = now() + 60 phút`.
+  2. **Bước 2**: Đơn hàng A quá hạn thanh toán chuyển sang `EXPIRED` -> Tiến trình xử lý giải phóng bài T: `status = 'published'`, `reserved_by_order_id = NULL`, `reserved_until = NULL`.
+  3. **Bước 3**: Khách hàng mới tạo đơn hàng B chứa bài độc quyền T -> T chuyển sang `status = 'reserved'`, `reserved_by_order_id = B.id`, `reserved_until = now() + 60 phút`.
+  4. **Bước 4**: Đơn hàng A bị hủy thủ công (`CANCELLED`) hoặc tiến trình dọn dẹp chạy lại (`re-swept`) đối với đơn hàng A.
+  5. **Kiểm tra nghiệm thu (Assertion)**:
+     - Lệnh giải phóng của đơn hàng A chỉ được tác động tới các bài có `reserved_by_order_id = A.id`.
+     - Bài hát T vẫn phải giữ nguyên trạng thái `reserved`, `reserved_by_order_id = B.id` của đơn hàng B. Quyền giữ chỗ của đơn hàng B không bị ảnh hưởng hay giải phóng nhầm.

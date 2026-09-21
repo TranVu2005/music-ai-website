@@ -18,7 +18,7 @@
   2. Kho nhạc (tìm kiếm, lọc theo thể loại và tâm trạng; BPM hiển thị metadata tham khảo)
   3. Nghe thử (Audio streaming bản demo chèn voice watermark; file demo có thể lưu trong `public/audio`)
   4. Bảng giá (bài có sẵn và các gói sáng tác riêng)
-  5. Form gửi yêu cầu đặt nhạc (gửi email về chủ website qua `EmailProvider` tích hợp Resend; chưa có admin panel)
+  5. Form gửi yêu cầu đặt nhạc (lưu vào `custom_requests` ĐỒNG THỜI gửi email về chủ website qua `EmailProvider` tích hợp Resend; chưa có admin panel)
 - **Giai đoạn 2 (Phase 2 - Bản bán được) [4 tính năng]**:
   6. Giỏ hàng và thanh toán (Cart nhiều bài hát, chuyển khoản VietQR sinh chuỗi EMVCo nội bộ, chủ website xác nhận thủ công)
   7. Giao file tự động (email chứa link tải kèm `download_token`, sinh Signed URL 15-30 phút khi bấm)
@@ -39,14 +39,15 @@
   - Tìm kiếm văn bản (text search) theo tên bài hát và mô tả.
   - Bộ lọc giới hạn: Lọc theo thể loại (Genre) và tâm trạng (Mood).
   - Chỉ số nhịp độ (BPM) được lưu trữ và hiển thị dưới dạng metadata tham khảo cho người nghe, **không** sử dụng làm bộ lọc tìm kiếm.
+  - Quản lý file gốc: Trong Phase 1, trường `tracks.original_file_key` được phép để trống (`NULL`) vì các file demo phục vụ trực tiếp từ thư mục tĩnh và hệ thống chưa kết nối Master Storage. Tuy nhiên, khi bước sang Phase 2, một bài hát bắt buộc phải có `original_file_key` hợp lệ thì mới được phép chuyển sang trạng thái mở bán (`published`).
 - **Nghe thử trực tiếp [Phase 1]**:
   - Trình phát nhạc (Audio Player) tương thích và mượt mà trên cả trình duyệt máy tính lẫn điện thoại.
   - File phát là bản nén MP3 chất lượng thấp (128kbps) đã được chèn âm thanh watermark (voice tag) lặp lại định kỳ để bảo vệ quyền tác giả.
-  - Trong Phase 1, các file MP3 preview có thể lưu trữ tạm thời trong thư mục `public/audio` của ứng dụng. Tuyệt đối **không bao giờ** commit hoặc lưu file master gốc trong `public/` hay đưa lên git repository.
+  - Trong Phase 1, các file MP3 preview được đặt trong thư mục `public/audio/previews/` của ứng dụng. Tuyệt đối **không bao giờ** commit hoặc lưu file master gốc trong `public/` hay đưa lên git repository.
 - **Bảng giá [Phase 1]**: Trang niêm yết rõ ràng mức giá cho từng loại giấy phép bài có sẵn và bảng giá tham khảo cho các gói dịch vụ sáng tác theo yêu cầu.
 - **Form gửi yêu cầu đặt nhạc [Phase 1]**:
   - Khách hàng điền form mô tả phong cách, thời lượng, mục đích sử dụng và link tham khảo.
-  - Ở Phase 1, hệ thống gửi nội dung yêu cầu trực tiếp về email của chủ website thông qua dịch vụ Resend (được bọc sau `EmailProvider` interface) để phản hồi thủ công. Hệ thống chưa có trang quản trị (Admin Panel) ở giai đoạn này.
+  - Ở Phase 1, hệ thống tiến hành **lưu bản ghi yêu cầu vào bảng `custom_requests` ĐỒNG THỜI gửi email thông báo** trực tiếp về hộp thư chủ website thông qua dịch vụ Resend (được bọc sau `EmailProvider` interface). Cơ chế lưu kép này đảm bảo ngay cả khi việc gửi email gặp sự cố mạng/dịch vụ thì dữ liệu yêu cầu của khách hàng vẫn được bảo toàn nguyên vẹn trong cơ sở dữ liệu. Hệ thống chưa có trang quản trị (Admin Panel) ở giai đoạn này.
 
 ---
 
@@ -58,9 +59,9 @@
   - **Giấy phép Dùng chung (Standard / Non-exclusive)**: Giá mềm, nhiều khách hàng có thể cùng mua và sử dụng theo điều khoản quy định.
   - **Giấy phép Độc quyền (Exclusive)**: Giá cao, chỉ bán cho một khách hàng duy nhất.
 - **Tạm khóa bài hát độc quyền & Giữ chỗ linh hoạt [Phase 2]**:
-  - Khi đơn hàng được tạo, mọi bài hát độc quyền trong đơn lập tức được tạm khóa (`status = 'reserved'`, ghi nhận `reserved_until` dựa trên cấu hình `settings.hold_minutes` với giá trị mặc định là **60 phút** - do chủ shop xác nhận thủ công, mức 15 phút sẽ thường xuyên làm hết hạn nhầm các đơn đã trả tiền).
+  - Khi đơn hàng được tạo, mọi bài hát độc quyền trong đơn lập tức được tạm khóa: `tracks.status = 'reserved'`, thiết lập liên kết `tracks.reserved_by_order_id = orders.id` và ghi nhận `reserved_until` dựa trên cấu hình `settings.hold_minutes` với giá trị mặc định là **60 phút** (thay vì 15 phút do chủ shop xác nhận thủ công).
   - **Hành động "Tôi đã chuyển tiền" (I have transferred)**: Khách hàng có thể nhấn nút tùy chọn này sau khi chuyển khoản, hệ thống ghi nhận mốc thời gian `orders.paid_claimed_at`, tự động gia hạn thời gian giữ chỗ của các bài độc quyền trong đơn lên `settings.claimed_hold_hours` (mặc định **24 giờ**) và gửi email thông báo cho chủ website để ưu tiên đối soát.
-  - Nếu đơn hàng hết hạn (`EXPIRED`) hoặc bị hủy (`CANCELLED`), toàn bộ bài hát độc quyền được tạm khóa trong đơn sẽ được giải phóng đồng thời về trạng thái công khai (`published`).
+  - Khi đơn hàng hết hạn (`EXPIRED`) hoặc bị hủy (`CANCELLED`), hệ thống chỉ được phép giải phóng các bài hát thỏa mãn: `WHERE reserved_by_order_id = :order_id AND status = 'reserved'`, sau đó xóa trắng `reserved_by_order_id = NULL` và `reserved_until = NULL`. Quy tắc này đảm bảo không bao giờ giải phóng nhầm bài hát đang được giữ bởi một đơn hàng khác.
 - **Thanh toán chuyển khoản VietQR & Xác nhận thủ công [Phase 2]**:
   - Khách hàng thanh toán qua chuyển khoản ngân hàng bằng mã QR. Chuỗi mã hóa VietQR (chuẩn EMVCo) được hệ thống tự động sinh nội bộ (không phụ thuộc dịch vụ bên thứ ba), với nội dung chuyển khoản chuẩn hóa là `order_code`.
   - Thay vì phụ thuộc vào webhook tự động, chủ website sẽ đối soát biến động số dư thực tế tại ngân hàng và nhấn nút "Xác nhận đã nhận tiền" (Confirm payment received) trên trang quản trị.
@@ -69,13 +70,13 @@
   - Nếu đơn hàng đã ở trạng thái `PAID`, thao tác xác nhận bị bỏ qua an toàn, ngăn chặn việc kích hoạt cấp quyền tải nhiều lần.
 - **Quy tắc xử lý khi xác nhận đơn hàng đã hết hạn (`EXPIRED`) [Phase 2]**:
   - Khi chủ website bấm xác nhận một đơn hàng đã chuyển sang `EXPIRED`:
-    1. Hệ thống thực hiện kiểm tra lại tính khả dụng (re-check track availability) của tất cả các bài hát độc quyền có trong đơn.
-    2. Nếu tất cả các bài độc quyền vẫn còn trống (chưa bị đơn khác giữ chỗ hoặc mua): Cho phép chuyển đơn sang `PAID`, chuyển trạng thái bài sang `sold_exclusive` và tiến hành giao file bình thường.
-    3. Nếu có ít nhất một bài độc quyền đã bị đơn khác mua hoặc giữ chỗ: Hệ thống **từ chối toàn bộ đơn hàng**, giữ nguyên trạng thái `EXPIRED` và thiết lập cột boolean `orders.needs_refund = true` cho 100% số tiền đơn hàng để chủ website hoàn trả tiền cho khách.
+    1. Hệ thống thực hiện kiểm tra lại tính khả dụng (re-check track availability) của tất cả các bài hát độc quyền có trong đơn thông qua trường `reserved_by_order_id`.
+    2. Nếu tất cả các bài độc quyền vẫn còn trống (chưa bị đơn khác giữ chỗ `reserved` hoặc mua `sold_exclusive`): Cho phép chuyển đơn sang `PAID`, chuyển trạng thái bài sang `sold_exclusive`, gán `reserved_by_order_id = :order_id` và tiến hành giao file bình thường.
+    3. Nếu có ít nhất một bài độc quyền đã bị đơn khác mua hoặc đang được giữ chỗ: Hệ thống **từ chối toàn bộ đơn hàng**, giữ nguyên trạng thái `EXPIRED` và thiết lập cột boolean `orders.needs_refund = true` cho 100% số tiền đơn hàng để chủ website hoàn trả tiền cho khách.
   - Danh sách đơn hàng trên trang quản trị bắt buộc phải hỗ trợ **bộ lọc theo `needs_refund`** để chủ website nhanh chóng nhận diện và xử lý các đơn hàng cần hoàn tiền.
 - **Giao file tự động qua Download Token & Signed URL [Phase 2]**:
-  - Sau khi đơn hàng được xác nhận `PAID`, hệ thống tự động gửi email xác nhận cho khách hàng kèm đường dẫn chứa mã truy cập đơn hàng an toàn (`download_token` nằm trên bảng `orders`).
-  - Mã `download_token` có thời hạn hiệu lực cấu hình (`download_valid_days`, mặc định 30 ngày).
+  - Sau khi đơn hàng được xác nhận `PAID`, hệ thống thiết lập `orders.download_expires_at = confirmed_at + settings.download_valid_days` (mặc định 30 ngày) và tự động gửi email xác nhận cho khách hàng kèm đường dẫn chứa mã truy cập đơn hàng an toàn (`download_token` nằm trên bảng `orders`). Trước khi đơn chuyển sang `PAID`, `orders.download_expires_at` có giá trị `NULL`.
+  - Endpoint tải nhạc (`/api/downloads/:token`) bắt buộc phải kiểm tra trạng thái đơn hàng và **từ chối truy cập ngay lập tức nếu đơn hàng chưa ở trạng thái `paid`**.
   - Khi khách hàng nhấn vào đường link trong email tới endpoint của ứng dụng, hệ thống xác thực đơn hàng hợp lệ và sinh Pre-signed URL trực tiếp từ Object Storage với thời hạn ngắn (15 - 30 phút) để khách tải file gốc.
   - Lượt tải file được ghi nhật ký và kiểm soát chi tiết theo từng `order_item_id` trong `download_logs`.
 - **Trang quản trị (Admin Panel) [Phase 2]**:

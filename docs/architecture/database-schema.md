@@ -29,10 +29,11 @@ Quản lý danh mục bài hát, siêu dữ liệu trưng bày và trạng thái
 - `mood` (VARCHAR, Not Null) - Tâm trạng âm nhạc (dùng cho bộ lọc)
 - `bpm` (INTEGER, Nullable) - Chỉ số nhịp độ (dùng để lưu trữ và hiển thị metadata tham khảo, **không** dùng làm bộ lọc)
 - `duration_seconds` (INTEGER, Not Null)
-- `preview_file_url` (VARCHAR, Not Null) - URL file MP3 128kbps nén chèn voice watermark (lưu trên CDN/R2 Public hoặc tạm thời trong `public/audio` ở Phase 1)
-- `original_file_key` (VARCHAR, Not Null) - Đường dẫn file master gốc WAV/FLAC trong Private Object Storage (tuyệt đối không commit vào git repo hay lưu trong `public/`)
+- `preview_file_url` (VARCHAR, Not Null) - URL file MP3 128kbps nén chèn voice watermark (lưu trên CDN/R2 Public hoặc tạm thời trong `public/audio/previews/` ở Phase 1)
+- `original_file_key` (VARCHAR, Nullable ở Phase 1, Not Null khi xuất bản ở Phase 2+) - Đường dẫn file master gốc WAV/FLAC trong Private Object Storage. Trong Phase 1 cho phép `NULL` do dùng preview tĩnh; sang Phase 2 bài hát bắt buộc phải có `original_file_key` thì mới được phát hành (`published`). Tuyệt đối không commit vào git repo hay lưu trong `public/`.
 - `cover_image_url` (VARCHAR, Nullable) - Ảnh bìa album/track
 - `status` (ENUM: `'draft'`, `'published'`, `'reserved'`, `'sold_exclusive'`, `'archived'`, Not Null, Default: `'draft'`)
+- `reserved_by_order_id` (UUID, Foreign Key -> `orders.id`, Nullable) - Đơn hàng đang tạm giữ chỗ hoặc đã mua độc quyền bài hát này. Được gán khi đặt chỗ (`reserved`) và khi bán độc quyền (`sold_exclusive`). Thao tác giải phóng / hết hạn / hủy đơn chỉ được phép giải phóng các bài `WHERE reserved_by_order_id = :order_id AND status = 'reserved'`, sau đó xóa trắng `reserved_by_order_id = NULL` và `reserved_until = NULL`.
 - `reserved_until` (TIMESTAMP, Nullable) - Mốc thời gian hết hạn tạm khóa khi có đơn mua độc quyền
 - `created_at` (TIMESTAMP, Not Null, Default: `now()`)
 - `updated_at` (TIMESTAMP, Not Null, Default: `now()`)
@@ -64,10 +65,10 @@ Quản lý thông tin đơn hàng giỏ hàng đa bài hát (`Cart = Multiple It
 - `total_amount` (BIGINT, Not Null) - Tổng số tiền thanh toán của cả đơn hàng (VNĐ)
 - `payment_status` (ENUM: `'pending'`, `'paid'`, `'expired'`, `'cancelled'`, `'refunded'`, Not Null, Default: `'pending'`)
 - `needs_refund` (BOOLEAN, Not Null, Default: `false`) - Cột boolean định danh đơn hàng cần hoàn tiền thủ công (đặt trực tiếp trên `orders` giúp trang danh sách đơn hàng của admin lọc nhanh mà không cần JOIN bảng `payments`)
-- `paid_claimed_at` (TIMESTAMP, Nullable) - Mốc thời gian khách hàng nhấn "Tôi đã chuyển tiền" để kích hoạt gia hạn giữ chỗ sang 24 giờ
+- `paid_claimed_at` (TIMESTAMP, Nullable) - Mốc thời gian khách hàng nhấn "Tôi đã chuyển tiền" để gia hạn giữ chỗ theo cấu hình `settings.claimed_hold_hours` (mặc định 24 giờ)
 - `payment_method` (VARCHAR, Not Null, Default: `'bank_transfer_qr'`)
 - `download_token` (VARCHAR, Unique, Not Null) - Mã token định danh bảo mật cho phiên tải đơn hàng gửi qua email
-- `download_expires_at` (TIMESTAMP, Not Null) - Thời hạn hiệu lực của mã tải (cấu hình qua `settings.download_valid_days`)
+- `download_expires_at` (TIMESTAMP, Nullable) - Thời hạn hiệu lực của mã tải (khởi tạo `NULL`, chỉ được thiết lập thành `confirmed_at + settings.download_valid_days` khi đơn hàng chuyển sang trạng thái `'paid'`)
 - `created_at` (TIMESTAMP, Not Null, Default: `now()`)
 - `updated_at` (TIMESTAMP, Not Null, Default: `now()`)
 
@@ -128,6 +129,7 @@ Cấu hình các tham số động vận hành nghiệp vụ của hệ thống.
 
 ## 9. Bảng `custom_requests` [Phase 1: Gửi form / Phase 3: Quản lý workflow]
 Quản lý các yêu cầu đặt làm bài hát độc quyền theo yêu cầu của khách hàng.
+> **Lưu ý Phase 1**: Ở Phase 1, form yêu cầu của khách hàng được ghi nhận và lưu trữ trực tiếp vào bảng `custom_requests` ĐỒNG THỜI gửi email thông báo cho chủ website, đảm bảo dữ liệu không bị mất nếu việc gửi email thất bại.
 - `id` (UUID, Primary Key, Default: `gen_random_uuid()`)
 - `user_id` (UUID, Foreign Key -> `users.id`, Nullable) - Gắn với tài khoản khách [Phase 3]
 - `customer_name` (VARCHAR, Not Null)
