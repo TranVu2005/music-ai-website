@@ -213,4 +213,41 @@ All architectural decisions concerning in-house VietQR generation, EXPIRED order
    - `docs/tasks/008-request-form.md`: Custom music request page and `POST /api/custom-requests` handler with Zod validation, dual-persistence (database insert before email dispatch), resilient email failure handling, `EmailProvider` interface (`ResendEmailProvider` and `ConsoleEmailProvider`), honeypot spam protection, and rate limiting.
    - `docs/tasks/009-deploy-acceptance.md`: Two-step deployment process: authoring `docs/decisions/hosting.md` (Vercel vs Docker VPS) with deployment hold pending owner approval, followed by test domain deployment and execution of the Milestone 1 client plan acceptance checklist (`docs/acceptance/milestone-1.md`).
 
+---
+
+## 9. Task Specification Amendments and Scaffold Cleanup
+
+1. **Task 001 Scaffold Cleanup & Configuration**:
+   - Cleaned up legacy directories `src/backend/` and `src/frontend/`, and removed duplicate CI workflow `build/deploy/.github/`.
+   - Rewrote `build/deploy/Dockerfile` for a unified Next.js monorepo on port 3000 with a non-root system user (`nextjs:nodejs`), keeping FFmpeg/ffprobe and removing `[STACK]` and `dist/backend/server.js`.
+   - Rewrote `build/deploy/docker-compose.yml` for PostgreSQL and a single unified `app` service on port 3000 using environment variables for credentials.
+   - Rewrote `.env.example` targeting the production stack: `DATABASE_URL`, `S3_*` (Cloudflare R2 / AWS S3 only), `RESEND_API_KEY`, `EMAIL_FROM`, `OWNER_NOTIFICATION_EMAIL`, `MASTERS_DIR`, `APP_BASE_URL`. Removed legacy variables (`PAYMENT_WEBHOOK_SECRET`, `JWT_SECRET`, `SMTP_*`, `PORT`/`BACKEND_URL`).
+   - Translated all Vietnamese comments in `ci.yml`, `Dockerfile`, `docker-compose.yml`, and `.env.example` into technical English.
+   - Updated `.github/workflows/ci.yml` to keep CI green on PRs prior to `package-lock.json` availability, and added CI green status to Task 001 Definition of Done.
+   - Added minimal `src/app/layout.tsx` skeleton scope to Task 001.
+
+2. **Cross-Task Architectural Adjustments**:
+   - `docs/tasks/007-catalog-ui-player.md`: Added mounting of `AudioPlayerProvider` and `AudioPlayerBar` inside `src/app/layout.tsx` to Scope. Documented landing order: Task 007 lands before Task 006.
+   - `docs/tasks/006-static-pages.md`: Clarified that Header and Footer wrap the existing layout from Task 007, with Task 006 rebasing on Task 007.
+   - `docs/tasks/003-preview-generator.md`: Documented `assets/watermark/tag.wav` file name and required format (uncompressed WAV, 2-3s) as a synthesized placeholder tone in Phase 1, replaced by the owner's spoken brand tag later with zero code change.
+   - `docs/tasks/008-request-form.md`: Documented that the in-memory rate limiter is per-instance, requiring a shared store (e.g. Upstash Redis) if serverless hosting is approved in Task 009.
+   - `docs/tasks/009-deploy-acceptance.md`: Added requirement that `docs/decisions/hosting.md` evaluate production PostgreSQL hosting (managed vs container) and total monthly cost. Marked real-device mobile checks (iOS Safari, Android Chrome) as human-verified by the owner via checklist rather than agent-executed.
+   - `README.md`: Added `design/` to the project directory structure tree.
+
+---
+
+## 10. Standalone Output, Docker Hardening, and Gitkeep Localization
+
+1. **Next.js Standalone Build & Docker Container Hardening**:
+   - `docs/tasks/001-project-setup.md`: Added Next.js `output: 'standalone'` configuration to Scope. Added OpenSSL installation (`apk add --no-cache openssl`) and Prisma schema generation/engine copying notes to Scope.
+   - `build/deploy/Dockerfile`: Added OpenSSL package, copied `src/db/` before `npm ci`, executed `npx prisma generate` in builder stage, and ensured the Prisma query engine and schema files are copied into the standalone runner stage.
+   - `docs/tasks/001-project-setup.md`: Ticked pre-completed Definition of Done items (legacy dirs removed, Dockerfile/compose/.env.example rewritten) and added new DoD: "Docker build succeeds and the container serves GET /api/health with HTTP 200".
+   - `build/deploy/docker-compose.yml`: Removed obsolete Compose `version:` key, bound PostgreSQL strictly to loopback (`127.0.0.1:5432:5432`), and added dev-only header comment.
+   - `docs/tasks/009-deploy-acceptance.md`: Added requirement in Scope to create `build/deploy/docker-compose.prod.yml` with strict password validation (`${POSTGRES_PASSWORD:?required}`) and no published database port if Docker VPS hosting is approved.
+
+2. **Localization Cleanup**:
+   - Translated Vietnamese comments in `test/.gitkeep`, `tools/.gitkeep`, and `src/db/migrations/.gitkeep` into English.
+
+
+
 

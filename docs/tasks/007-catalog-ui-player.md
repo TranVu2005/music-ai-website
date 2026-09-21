@@ -18,10 +18,11 @@
 
 ## 3. Scope
 - Components, directories, and files within task scope:
+  - `src/app/layout.tsx`: Mount `AudioPlayerProvider` wrapping page content and mount `AudioPlayerBar` docked across the application layout. (Task ordering: Task 007 lands first; Task 006 will subsequent wrap Header/Footer around this existing layout and rebase on Task 007).
   - `src/app/tracks/page.tsx`: Catalog listing page integrating search input, genre and mood filter chips/dropdowns, track grid/list, and pagination controls.
   - `src/app/tracks/[slug]/page.tsx`: Individual track showcase page.
   - `src/components/player/`:
-    - `AudioPlayerContext.tsx`: React Context / state store managing current track, playback state (`playing`, `paused`, `loading`), current time, duration, and volume.
+    - `AudioPlayerContext.tsx`: React Context / state store (`AudioPlayerProvider`) managing current track, playback state (`playing`, `paused`, `loading`), current time, duration, and volume.
     - `AudioPlayerBar.tsx`: Persistent bottom audio player docked across the application with responsive mobile drawer/mini-player mode.
     - `useAudioPlayer.ts`: Custom hook for audio element controls and event listeners.
   - `src/components/catalog/`: TrackCard, TrackSearchInput, FilterGroup, PaginationBar.
