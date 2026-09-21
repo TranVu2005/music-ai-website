@@ -121,7 +121,10 @@ The checkout architecture supports multi-item carts (`Cart = Multiple Items`), w
   - All exclusive tracks in the order are set to `tracks.status = 'reserved'`, `tracks.reserved_by_order_id = orders.id`, and `tracks.reserved_until` recorded.
 
 ### 3.2. Deadlock Avoidance Pattern [Phase 2]
-For orders containing multiple exclusive tracks, **reservation (reserve)**, **release (release)**, **sweep**, and **confirmation (confirm)** operations must execute within a single Database Transaction following strict lock ordering:
+For orders containing multiple exclusive tracks, **reservation (reserve)**, **release (release)**, **sweep**, and **confirmation (confirm)** operations must execute within a single Database Transaction following strict lock ordering.
+
+> **Prisma Implementation Note**: Since Prisma ORM has no native syntax for `SELECT ... FOR UPDATE`, all locking queries in this section run inside an interactive transaction (`prisma.$transaction(async (tx) => { ... })`) using raw SQL via `tx.$queryRaw`.
+
 1. **Lock the Order row first**:
    ```sql
    SELECT * FROM orders WHERE id = $1 FOR UPDATE;

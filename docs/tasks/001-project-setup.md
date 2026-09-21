@@ -1,7 +1,7 @@
 # Task 001: Project Initialization with Next.js Monorepo
 
 ## 1. Objectives
-- Set up and initialize the base project structure for `music-shop` following the unified fullstack architecture (Frontend & API: Next.js/React + TypeScript + Tailwind CSS with Route Handlers, Database: PostgreSQL + Prisma ORM, Storage: S3-compatible Cloudflare R2 / AWS S3, Container: Docker).
+- Set up and initialize the base project structure for `music-shop` following the unified fullstack architecture (Frontend & API: Next.js/React + TypeScript + Tailwind CSS with Route Handlers, Database: PostgreSQL + Prisma ORM, Storage: S3-compatible Cloudflare R2 / AWS S3, Container: Docker, Test Runner: Vitest).
 - Ensure code quality tooling (Linter, Formatter, TypeScript compiler) and operational startup scripts are fully functional.
 
 ## 2. Prerequisites (link docs)
@@ -14,8 +14,9 @@
 - Initialize project directory structure:
   - `src/`: Next.js project configuration (TypeScript, Tailwind CSS, App Router & API Route Handlers).
   - `src/db/migrations/`: Prisma ORM environment and initial migration setup.
-  - `test/`: Test runner configuration (Jest / Vitest).
-  - `build/deploy/`: `Dockerfile`, `docker-compose.yml`, and `.github/workflows/ci.yml`.
+  - `test/`: Test runner configuration with Vitest.
+  - `.github/workflows/ci.yml`: GitHub Actions automated CI workflow.
+  - `build/deploy/`: `Dockerfile` and `docker-compose.yml`.
   - `tools/`: Development helper scripts.
 - Configure environment variables template `.env.example` and `.gitignore`.
 - Set up DevOps controls (Phase 1 Week 1): Pre-commit hook and CI checks preventing unapproved audio file commits outside `public/audio/previews/**` and `assets/watermark/**`.
@@ -25,7 +26,7 @@
 - [ ] Directory structure initialized cleanly according to architecture design.
 - [ ] Base dependencies installed for Next.js application.
 - [ ] `docker compose up` starts local PostgreSQL database successfully.
-- [ ] Linting, type-checking, and build validation scripts pass without errors.
+- [ ] Linting, type-checking, and build validation scripts pass without errors via Vitest.
 - [ ] No compilation errors or configuration conflicts.
 
 ## 5. Required Tests

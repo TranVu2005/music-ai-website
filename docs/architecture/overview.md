@@ -59,12 +59,13 @@ The system is organized into a modular monolith deployed progressively across 3 
 The platform is structured as a unified TypeScript monorepo with minimal operational overhead:
 
 - **Fullstack Web Framework**: Next.js (TypeScript, App Router) with Tailwind CSS for frontend styling and Next.js Route Handlers (`src/app/api/...`) for RESTful API endpoints.
-- **Database & ORM**: PostgreSQL managed via Prisma ORM for schema definitions, migrations, and transactional type-safety.
+- **Database & ORM**: PostgreSQL managed via Prisma ORM for schema definitions, migrations, and transactional type-safety. Because Prisma has no native support for `FOR UPDATE`, all pessimistic row-locking queries run inside `prisma.$transaction` using `prisma.$queryRaw`.
 - **Object Storage**: S3-compatible Cloudflare R2 (or AWS S3):
   - **Public Bucket / CDN**: Cover art images and compressed watermarked preview MP3s.
   - **Private Bucket**: Master audio files (WAV/FLAC) and generated license PDFs.
 - **Audio Processing**: Internal standalone script / background worker running **FFmpeg** in the repository to compress audio and mix voice tags into preview files on upload.
 - **Email Delivery**: **Resend** abstracted behind an `EmailProvider` interface for order notifications, payment confirmations, and custom inquiry alerts.
+- **Testing Framework**: **Vitest** for unit, integration, concurrency, and authorization test suites.
 - **Containerization & DevOps**: Docker, Docker Compose for local development; GitHub Actions for automated CI; Git pre-commit hooks and CI checks configured in Phase 1 Week 1 to prevent audio files outside `public/audio/previews/**` from entering the repository.
 
 ---

@@ -1,7 +1,7 @@
 # Music Store Website Implementation Plan (Project Plan)
 
 > **Source of Truth**  
-> This document is directly extracted and systematized from the client implementation plan (*"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* - 2026-09-20).  
+> This document is directly extracted and systematized from the client implementation plan (*"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version") - 2026-09-20).  
 > **The project scope is strictly frozen at exactly 13 features, allocated across 3 phases in a 5 / 4 / 4 ratio (Phase 1: 5 features, Phase 2: 4 features, Phase 3: 4 features).**
 
 ---

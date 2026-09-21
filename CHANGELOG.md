@@ -1,7 +1,7 @@
 # Documentation Changelog (CHANGELOG)
 
 > **Date**: 2026-09-21  
-> **Source of Truth**: `docs/project-plan.md` (directly extracted and systematized from the client implementation plan *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* - 2026-09-20).  
+> **Source of Truth**: `docs/project-plan.md` (directly extracted and systematized from the client implementation plan *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version") - 2026-09-20).  
 > **Project Scope**: Strictly frozen at exactly 13 features allocated across 3 phases in a 5 / 4 / 4 ratio (Phase 1: 5 features, Phase 2: 4 features, Phase 3: 4 features).
 
 ---
@@ -165,3 +165,33 @@ All architectural decisions concerning in-house VietQR generation, EXPIRED order
    - Translated all documentation under `docs/` (`project-plan.md`, `requirements.md`, `overview.md`, `database-schema.md`, `payment-flow.md`, `file-protection.md`, `001-project-setup.md`, `_template.md`) and `CHANGELOG.md` into natural technical English.
    - Added glossary to `docs/project-plan.md`.
    - Stated UI language policy in `requirements.md` (website UI is Vietnamese-only, project docs are English). Quoted Vietnamese UI labels and messages are accompanied by English explanations.
+
+---
+
+## 7. Final Documentation Cleanup & Architecture Alignment
+
+1. **Repository Root Translation**:
+   - Translated `CLAUDE.md` and `README.md` to English, preserving identifiers, paths, commands, and enum values, with Vietnamese UI copy quoted and glossed.
+
+2. **Testing Specification Alignment (`CLAUDE.md`)**:
+   - Replaced legacy webhook testing rules with tests for:
+     - Manual payment confirmation idempotency (double-clicking "Xác nhận đã nhận tiền" grants access and sends email only once).
+     - Strict lock ordering and hold isolation from `payment-flow.md` section 6, including the concurrent opposite-order deadlock test.
+     - Download authorization (token hash matching via constant-time comparison, requirement for `paid` status, rejection of expired tokens, and short-lived signed URLs).
+     - Claim-paid abuse controls (once per order, rejected when EXPIRED/CANCELLED, pending-order cap, rate limit).
+     - Manual refund completion transition.
+
+3. **Monolithic Architecture Alignment (`README.md`)**:
+   - Replaced legacy frontend/backend directory structures and placeholders with the Next.js monolithic layout (`src/app`, `src/app/api` Route Handlers, `src/db/migrations`, `test/`, `tools/`).
+   - Standardized payment wording to "VietQR payment with manual owner confirmation".
+
+4. **CI Workflow Location Standardization**:
+   - Moved CI workflow specification to `.github/workflows/ci.yml` at the repository root, retaining only `Dockerfile` and `docker-compose.yml` in `build/deploy/`. Updated `README.md` and `docs/tasks/001-project-setup.md`.
+
+5. **Decision Records (Vitest & Prisma Row Locking)**:
+   - Formally recorded **Vitest** as the unified test runner across `docs/tasks/001-project-setup.md` and `docs/architecture/overview.md`.
+   - Documented that because Prisma lacks native `FOR UPDATE` support, all pessimistic locking queries in `payment-flow.md` section 3 execute inside `prisma.$transaction` using `prisma.$queryRaw` (recorded in `overview.md` and `payment-flow.md`).
+
+6. **English Gloss on Client Plan Title**:
+   - Added English gloss to the source document title across `docs/project-plan.md` and `CHANGELOG.md`: *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version").
+

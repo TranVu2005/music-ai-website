@@ -1,46 +1,48 @@
 # music-shop
 
-Website thương mại điện tử chuyên biệt để bán các bản nhạc sáng tác có sẵn (cho phép nghe thử bản preview có watermark, thanh toán trực tuyến qua QR chuyển khoản, cấp quyền tải file gốc bảo mật) và tiếp nhận / quản lý quy trình đặt sáng tác âm nhạc theo yêu cầu riêng.
+Specialized e-commerce website for selling pre-composed music tracks (supporting watermarked audio streaming previews, VietQR payment with manual owner confirmation, and secure timed master file delivery) and managing commissioned custom composition requests.
 
-## Cấu trúc Thư mục
+## Directory Structure
 
 ```text
 music-shop/
-├── docs/                               # Tài liệu dự án theo phương pháp docs-first
-│   ├── requirements/                   # Tài liệu yêu cầu chức năng & phi chức năng
-│   │   └── requirements.md             # Đặc tả yêu cầu chi tiết
-│   ├── architecture/                   # Thiết kế kiến trúc kỹ thuật
-│   │   ├── overview.md                 # Tổng quan kiến trúc & các module
-│   │   ├── database-schema.md          # Thiết kế bảng & trường cơ sở dữ liệu
-│   │   ├── payment-flow.md             # Luồng thanh toán QR & xử lý webhook idempotency
-│   │   └── file-protection.md          # Cơ chế bảo vệ file gốc & watermark preview
-│   └── tasks/                          # Kế hoạch thực hiện theo từng task cụ thể
-│       ├── _template.md                # Bản mẫu (template) chuẩn cho từng task
-│       └── 001-project-setup.md        # Task khởi tạo dự án theo [STACK]
-├── src/                                # Mã nguồn ứng dụng
-│   ├── frontend/                       # Giao diện người dùng (Next.js / React)
-│   ├── backend/                        # API backend service (Node.js / Express / Fastify)
-│   └── db/                             # Cơ sở dữ liệu
-│       └── migrations/                 # Các bản script database migration
-├── test/                               # Bộ kiểm thử tự động (Unit, Integration, E2E)
-├── build/deploy/                       # Cấu hình đóng gói container và triển khai
-│   ├── Dockerfile                      # Khung Dockerfile build multi-stage
-│   ├── docker-compose.yml              # Khởi chạy dịch vụ container cục bộ
-│   └── .github/workflows/ci.yml        # Kịch bản CI tự động hóa kiểm thử và build
-└── tools/                              # Các kịch bản công cụ hỗ trợ phát triển dự án
+├── .github/
+│   └── workflows/
+│       └── ci.yml                      # Automated CI workflow for testing and build verification
+├── docs/                               # Project documentation following docs-first methodology
+│   ├── requirements/                   # Functional and non-functional requirements
+│   │   └── requirements.md             # Detailed requirements specification
+│   ├── architecture/                   # Technical architecture specifications
+│   │   ├── overview.md                 # System architecture overview & modules
+│   │   ├── database-schema.md          # Database tables and column definitions
+│   │   ├── payment-flow.md             # VietQR payment, deadlock avoidance & manual confirmation flow
+│   │   └── file-protection.md          # Master audio protection & watermarked preview delivery
+│   └── tasks/                          # Task-based implementation work packages
+│       ├── _template.md                # Standardized task documentation template
+│       └── 001-project-setup.md        # Monorepo setup task with Next.js & Vitest
+├── src/                                # Application source code (Next.js Monolith)
+│   ├── app/                            # Next.js App Router pages and components
+│   │   └── api/                        # Route Handlers for RESTful API endpoints
+│   └── db/                             # Database access layer (Prisma ORM)
+│       └── migrations/                 # PostgreSQL database migration scripts
+├── test/                               # Automated test suites (Unit, Integration, E2E via Vitest)
+├── build/deploy/                       # Container packaging and local service configuration
+│   ├── Dockerfile                      # Multi-stage container build definition
+│   └── docker-compose.yml              # Local development container orchestration (PostgreSQL)
+└── tools/                              # Development scripts and CLI utility tools
 ```
 
-## Nguyên tắc Phát triển (Docs-first)
+## Development Principles (Docs-First)
 
-Dự án áp dụng chặt chẽ quy trình **Docs-First**:
-1. Trước khi viết mã, lập trình viên và trợ lý AI luôn phải đọc kỹ tài liệu trong `docs/architecture/` và task cụ thể trong `docs/tasks/`.
-2. Chi tiết hướng dẫn và nguyên tắc làm việc xem tại file [CLAUDE.md](./CLAUDE.md).
+The project strictly follows a **Docs-First** methodology:
+1. Before writing code, developers and AI assistants must review specifications in `docs/architecture/` and the assigned task in `docs/tasks/`.
+2. Detailed guidelines and testing requirements are defined in [CLAUDE.md](./CLAUDE.md).
 
-## Khởi động Nhanh
+## Quick Start
 
-1. Sao chép file cấu hình môi trường:
+1. Copy the environment configuration template:
    ```bash
    cp .env.example .env
    ```
-2. Cập nhật các thông số cần thiết trong file `.env`.
-3. Xem hướng dẫn thực hiện khởi tạo dự án tại [Task 001](./docs/tasks/001-project-setup.md).
+2. Configure required environment variables in `.env`.
+3. Follow project setup instructions in [Task 001](./docs/tasks/001-project-setup.md).
