@@ -109,4 +109,42 @@ describe("tools/check-audio.sh audio guard", () => {
     expect(result.status).toBe(1);
     expect(result.stderr || result.stdout).toContain("staged.mp3");
   });
+
+  it("handles filenames with spaces correctly (rejects 'my song.wav' and accepts 'public/audio/previews/my track.mp3')", () => {
+    // 1. Staged 'my song.wav' must be rejected
+    fs.writeFileSync(path.join(tempDir, "my song.wav"), "dummy audio");
+    execSync('git add -f "my song.wav"', { cwd: tempDir });
+
+    let result = spawnSync(shCmd, [scriptPath, "--staged"], {
+      cwd: tempDir,
+      encoding: "utf-8",
+    });
+
+    expect(result.status).toBe(1);
+    expect(result.stderr || result.stdout).toContain("my song.wav");
+
+    // Unstage and remove forbidden file
+    execSync('git rm -f "my song.wav"', { cwd: tempDir });
+
+    // 2. Staged 'public/audio/previews/my track.mp3' must be accepted
+    const previewDir = path.join(tempDir, "public", "audio", "previews");
+    fs.mkdirSync(previewDir, { recursive: true });
+    fs.writeFileSync(path.join(previewDir, "my track.mp3"), "preview mp3 data");
+    execSync('git add "public/audio/previews/my track.mp3"', { cwd: tempDir });
+
+    result = spawnSync(shCmd, [scriptPath, "--staged"], {
+      cwd: tempDir,
+      encoding: "utf-8",
+    });
+
+    expect(result.status).toBe(0);
+
+    // Also verify default git ls-files mode
+    result = spawnSync(shCmd, [scriptPath], {
+      cwd: tempDir,
+      encoding: "utf-8",
+    });
+
+    expect(result.status).toBe(0);
+  });
 });

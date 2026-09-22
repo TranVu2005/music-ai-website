@@ -6,16 +6,19 @@ if [ "$1" = "--staged" ]; then
   MODE="staged"
 fi
 
+TMP_LIST=$(mktemp)
+trap 'rm -f "$TMP_LIST"' EXIT INT TERM
+
 if [ "$MODE" = "staged" ]; then
-  FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+  git diff --cached --name-only --diff-filter=ACMR -z > "$TMP_LIST"
 else
-  FILES=$(git ls-files)
+  git ls-files -z > "$TMP_LIST"
 fi
 
 FAILED=0
 MAX_BYTES=15728640
 
-for FILE in $FILES; do
+while IFS= read -r -d '' FILE; do
   if [ ! -f "$FILE" ]; then
     continue
   fi
@@ -43,7 +46,7 @@ for FILE in $FILES; do
     echo "ERROR: File exceeds 15MB limit ($FILE_SIZE bytes): $FILE" >&2
     FAILED=1
   fi
-done
+done < "$TMP_LIST"
 
 if [ "$FAILED" -ne 0 ]; then
   exit 1
