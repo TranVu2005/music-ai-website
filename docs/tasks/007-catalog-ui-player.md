@@ -12,7 +12,7 @@
 - [Requirements](../requirements/requirements.md)
 - [Architecture Overview](../architecture/overview.md)
 - [File Protection](../architecture/file-protection.md)
-- [CLAUDE.md](../../CLAUDE.md)
+- [AGENTS.md](../../AGENTS.md)
 - [Task 004: Catalog API Handlers](./004-catalog-api.md)
 - [Task 005: UI Design Mockups](./005-ui-design.md) (Formal owner approval required)
 

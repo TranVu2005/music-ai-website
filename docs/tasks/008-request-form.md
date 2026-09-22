@@ -13,7 +13,7 @@
 - [Architecture Overview](../architecture/overview.md)
 - [Database Schema](../architecture/database-schema.md)
 - [Project Plan](../project-plan.md)
-- [CLAUDE.md](../../CLAUDE.md)
+- [AGENTS.md](../../AGENTS.md)
 - [Task 002: Prisma Schema and Seed](./002-prisma-schema-seed.md)
 - [Task 009: Deployment Decision](./009-deploy-acceptance.md)
 - [Hosting Decisions](../decisions/hosting.md) (Single-instance demo hosting dictates rate-limiter backing store)

@@ -12,7 +12,7 @@
 - [Architecture Overview](../architecture/overview.md)
 - [Database Schema](../architecture/database-schema.md)
 - [Project Plan](../project-plan.md)
-- [CLAUDE.md](../../CLAUDE.md)
+- [AGENTS.md](../../AGENTS.md)
 - [Task 001: Project Setup](./001-project-setup.md)
 
 ## 3. Scope
