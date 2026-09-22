@@ -20,6 +20,10 @@
    - Added single handoff document (`docs/status.md`) for new chats, reviewers, and agents.
    - Formalized roles (Product Owner, Lead/Reviewer Claude, Executing Agents Gemini), source of truth inventory, finalized architectural decisions table, Phase 1 implementation task status (001-009), next actions, client/owner open items, and known follow-up items.
 
+3. **Workspace Skills Setup for Antigravity (`.agent/skills/`)**:
+   - Moved all 14 workspace skills from `.claude/skills/` to `.agent/skills/` with full git history preservation.
+   - Enables native skill discovery for Google Antigravity in the project workspace across all procedure runbooks (`brainstorming`, `dispatching-parallel-agents`, `executing-plans`, `finishing-a-development-branch`, `receiving-code-review`, `requesting-code-review`, `subagent-driven-development`, `systematic-debugging`, `test-driven-development`, `using-git-worktrees`, `using-superpowers`, `verification-before-completion`, `writing-plans`, `writing-skills`).
+
 ---
 
 ## 1. Updated Document Inventory
