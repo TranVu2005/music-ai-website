@@ -12,7 +12,7 @@
 - [Architecture Overview](../architecture/overview.md)
 - [Project Plan](../project-plan.md)
 - [Hosting Decisions](../decisions/hosting.md)
-- [CLAUDE.md](../../CLAUDE.md)
+- [AGENTS.md](../../AGENTS.md)
 - [Task 001: Project Setup](./001-project-setup.md)
 - [Task 002: Prisma Schema and Seed](./002-prisma-schema-seed.md)
 - [Task 003: Preview Generator](./003-preview-generator.md)

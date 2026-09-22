@@ -45,7 +45,7 @@ music-shop/
 
 The project strictly follows a **Docs-First** methodology:
 1. Before writing code, developers and AI assistants must review specifications in `docs/architecture/` and the assigned task in `docs/tasks/`.
-2. Detailed guidelines and testing requirements are defined in [CLAUDE.md](./CLAUDE.md).
+2. Detailed guidelines and testing requirements are defined in [AGENTS.md](./AGENTS.md).
 
 ## Quick Start
 

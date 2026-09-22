@@ -11,7 +11,7 @@
 - [Requirements](../requirements/requirements.md)
 - [Architecture Overview](../architecture/overview.md)
 - [File Protection](../architecture/file-protection.md)
-- [CLAUDE.md](../../CLAUDE.md)
+- [AGENTS.md](../../AGENTS.md)
 - [Task 001: Project Setup](./001-project-setup.md)
 
 ## 3. Scope

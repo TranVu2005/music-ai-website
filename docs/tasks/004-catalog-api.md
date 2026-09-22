@@ -13,7 +13,7 @@
 - [Architecture Overview](../architecture/overview.md)
 - [Database Schema](../architecture/database-schema.md)
 - [File Protection](../architecture/file-protection.md)
-- [CLAUDE.md](../../CLAUDE.md)
+- [AGENTS.md](../../AGENTS.md)
 - [Task 002: Prisma Schema and Seed](./002-prisma-schema-seed.md)
 
 ## 3. Scope

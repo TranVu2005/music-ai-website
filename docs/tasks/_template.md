@@ -10,7 +10,7 @@
   - [Database Schema](../architecture/database-schema.md)
   - [Payment Flow](../architecture/payment-flow.md)
   - [File Protection](../architecture/file-protection.md)
-  - [CLAUDE.md](../../CLAUDE.md)
+  - [AGENTS.md](../../AGENTS.md)
 
 ## 3. Scope
 - Components, directories, and files within task scope:

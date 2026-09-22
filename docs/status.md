@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-22 · main at `162cf96` (PR #4 merged)
+> Last updated: 2026-09-22 (PR #5)
 > Purpose: single handoff document for any new chat, reviewer or agent. Read this file and `CHANGELOG.md` first.
 > Update rule: every PR that changes a decision, a task status or an open item updates this file in the same PR.
 
@@ -26,7 +26,7 @@ Working rules: one task = one branch = one PR. Agents never merge. Reviews are b
 | `docs/architecture/file-protection.md` | Previews, masters, signed URLs, repo audio rules |
 | `docs/decisions/hosting.md` | Hosting decision record (options A-E) |
 | `docs/tasks/*.md` | Phase 1 task specs 001-009 |
-| `CLAUDE.md` | Agent rules (docs-first, testing requirements) |
+| `AGENTS.md` | Agent rules (docs-first, testing requirements); CLAUDE.md and GEMINI.md point here |
 
 Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai website bán nhạc: bản gửi khách hàng" (Music website implementation plan: client version).
 
@@ -78,15 +78,13 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 ## 5. Next actions
 
 1. Assign Task 001 to the DevOps agent (branch `feat/task-001-project-setup`). Includes: `.dockerignore`, `prisma:generate` script, record the Prisma direct-URL configuration in README, CI green with lint/typecheck/test/build/audio guard, `docker build` + `GET /api/health` 200.
-2. Proposed, awaiting owner approval: move agent rules from `CLAUDE.md` to `AGENTS.md`, with `GEMINI.md` and `CLAUDE.md` pointing to it, so Gemini-based agents read the same rules.
-3. Assign Task 005 once the brand name and style direction are provided (or with placeholders).
+2. Assign Task 005 once the brand name and style direction are provided (or with placeholders).
 
 ## 6. Open items
 
 ### Owner (Vu)
 - [ ] Brand name and style direction (colors, feel) for Task 005.
 - [ ] Make the GitHub repository private (currently public, includes the client plan PDF).
-- [ ] Decide on `AGENTS.md` (next action 2).
 - [ ] Before Task 009: create Neon, Render and Resend accounts (Resend with the owner's mailbox); read the Render and Neon free-tier terms.
 - [ ] Before week 6: choose the paid VPS; request monthly quotes from 2-3 providers (DigitalOcean verified at $24/month; domestic providers "verify before use").
 - [ ] Confirm `.claude/skills/` in the repo is intentional.

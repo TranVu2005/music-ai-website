@@ -11,7 +11,7 @@
 - [Requirements](../requirements/requirements.md)
 - [Architecture Overview](../architecture/overview.md)
 - [Project Plan](../project-plan.md)
-- [CLAUDE.md](../../CLAUDE.md)
+- [AGENTS.md](../../AGENTS.md)
 - [Task 001: Project Setup](./001-project-setup.md)
 - [Task 005: UI Design Mockups](./005-ui-design.md) (Formal owner approval required)
 - [Task 007: Catalog UI and Player](./007-catalog-ui-player.md) (Task 007 lands first; Task 006 rebases on it)

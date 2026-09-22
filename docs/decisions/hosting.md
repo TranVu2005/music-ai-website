@@ -1,7 +1,7 @@
 # Architectural Decision Record: Hosting Strategy for Phase 1 Demo and Phase 2 Production
 
 > **Decision Status**: Approved by Product Owner (2026-09-21)  
-> **Source of Truth**: Aligned with [`docs/project-plan.md`](../project-plan.md) and [`CLAUDE.md`](../../CLAUDE.md)  
+> **Source of Truth**: Aligned with [`docs/project-plan.md`](../project-plan.md) and [`AGENTS.md`](../../AGENTS.md)  
 > **Hard Rule**: **"No real customer orders on any free tier."**
 
 ---

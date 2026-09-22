@@ -6,6 +6,22 @@
 
 ---
 
+## 2026-09-22 — Agent Rules Moved to AGENTS.md & Project Status Document
+
+1. **Agent Rules Canonicalized in `AGENTS.md`**:
+   - Moved development guidelines and agent rules from `CLAUDE.md` to vendor-neutral `AGENTS.md` with full git history preservation (`git mv`).
+   - Updated H1 to `# Agent Guidelines (AGENTS.md)` and added header notice: `> Canonical rules for all AI agents and developers. \`CLAUDE.md\` and \`GEMINI.md\` only point here; edit this file only.`
+   - Created thin pointer `CLAUDE.md` importing `@AGENTS.md`.
+   - Created thin pointer `GEMINI.md` importing `@./AGENTS.md`.
+   - Added `.gemini/settings.json` specifying `AGENTS.md` and `GEMINI.md` as context files for Gemini-based agents.
+   - Updated active documentation links from `CLAUDE.md` to `AGENTS.md` across `README.md`, `docs/decisions/hosting.md`, `docs/status.md`, `docs/tasks/_template.md`, and `docs/tasks/001` through `009`.
+
+2. **Project Status Handoff Document (`docs/status.md`)** (added 2026-09-22 in commit `8bc0851`):
+   - Added single handoff document (`docs/status.md`) for new chats, reviewers, and agents.
+   - Formalized roles (Product Owner, Lead/Reviewer Claude, Executing Agents Gemini), source of truth inventory, finalized architectural decisions table, Phase 1 implementation task status (001-009), next actions, client/owner open items, and known follow-up items.
+
+---
+
 ## 1. Updated Document Inventory
 
 1. [`docs/project-plan.md`](./docs/project-plan.md): Primary source of truth document defining 13 frozen features, 3 delivery milestones, operational rules, glossary, and out-of-scope boundaries.

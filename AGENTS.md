@@ -1,4 +1,5 @@
-# Development Guidelines
+# Agent Guidelines (AGENTS.md)
+> Canonical rules for all AI agents and developers. `CLAUDE.md` and `GEMINI.md` only point here; edit this file only.
 
 This document outlines mandatory engineering principles for developers and AI coding assistants working on the **music-shop** project.
 

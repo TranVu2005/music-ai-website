@@ -11,7 +11,7 @@
 - [Requirements](../requirements/requirements.md)
 - [Architecture Overview](../architecture/overview.md)
 - [Project Plan](../project-plan.md)
-- [CLAUDE.md](../../CLAUDE.md)
+- [AGENTS.md](../../AGENTS.md)
 
 ## 3. Scope
 - Components, directories, and files within task scope:
