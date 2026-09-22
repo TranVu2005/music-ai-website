@@ -1,0 +1,2 @@
+#!/bin/sh
+tools/check-audio.sh --staged
