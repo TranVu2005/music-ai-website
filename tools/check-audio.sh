@@ -1,6 +1,12 @@
 #!/bin/sh
 set -e
 
+# Re-exec with bash if running under a non-bash shell (e.g. dash on Debian/Ubuntu)
+# to support NUL-delimited reading (read -d '').
+if [ -z "$BASH_VERSION" ] && command -v bash >/dev/null 2>&1; then
+  exec bash "$0" "$@"
+fi
+
 MODE="default"
 if [ "$1" = "--staged" ]; then
   MODE="staged"
