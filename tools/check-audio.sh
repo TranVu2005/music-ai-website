@@ -7,6 +7,11 @@ if [ -z "$BASH_VERSION" ] && command -v bash >/dev/null 2>&1; then
   exec bash "$0" "$@"
 fi
 
+if [ -z "$BASH_VERSION" ]; then
+  echo "ERROR: check-audio.sh requires bash (NUL-delimited read)." >&2
+  exit 1
+fi
+
 MODE="default"
 if [ "$1" = "--staged" ]; then
   MODE="staged"

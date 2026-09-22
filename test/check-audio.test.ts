@@ -147,4 +147,48 @@ describe("tools/check-audio.sh audio guard", () => {
 
     expect(result.status).toBe(0);
   });
+
+  it.skipIf(process.platform === "win32")(
+    "fails with non-zero exit when bash is unavailable in PATH",
+    () => {
+      const noBashBinDir = fs.mkdtempSync(path.join(os.tmpdir(), "no-bash-bin-"));
+      try {
+        const findBin = (cmd: string): string | null => {
+          try {
+            return execSync(`which ${cmd}`, { encoding: "utf-8" }).trim();
+          } catch {
+            return null;
+          }
+        };
+
+        const shTarget = findBin("dash") || findBin("sh") || "/bin/sh";
+        fs.symlinkSync(shTarget, path.join(noBashBinDir, "sh"));
+
+        for (const tool of ["git", "wc", "mktemp", "tr", "rm"]) {
+          const p = findBin(tool);
+          if (p) {
+            try {
+              fs.symlinkSync(p, path.join(noBashBinDir, tool));
+            } catch {
+              // ignore if already linked
+            }
+          }
+        }
+
+        const result = spawnSync(path.join(noBashBinDir, "sh"), [scriptPath], {
+          cwd: tempDir,
+          env: {
+            ...process.env,
+            PATH: noBashBinDir,
+          },
+          encoding: "utf-8",
+        });
+
+        expect(result.status).not.toBe(0);
+        expect(result.stderr || result.stdout).toContain("check-audio.sh requires bash");
+      } finally {
+        fs.rmSync(noBashBinDir, { recursive: true, force: true });
+      }
+    }
+  );
 });
