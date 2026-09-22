@@ -55,11 +55,14 @@ jobs:
       - name: Generate Prisma client
         run: npm run prisma:generate
 
-      - name: Run unit and integration tests
-        run: npm run test
-
       - name: Deploy database migrations (validate direct URL)
         run: npm run db:migrate:deploy
+
+      - name: Seed database
+        run: npm run db:seed
+
+      - name: Run unit and integration tests
+        run: npm run test
 
       - name: Build application
         run: npm run build

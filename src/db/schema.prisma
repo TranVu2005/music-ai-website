@@ -7,3 +7,103 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+enum Role {
+  admin
+  customer
+
+  @@map("role")
+}
+
+enum TrackStatus {
+  draft
+  published
+  reserved
+  sold_exclusive
+  archived
+
+  @@map("track_status")
+}
+
+enum CustomRequestStatus {
+  submitted
+  quoted
+  deposit_pending
+  in_progress
+  demo_sent
+  revising
+  approved
+  completed
+  cancelled
+
+  @@map("custom_request_status")
+}
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique @db.VarChar
+  passwordHash String   @map("password_hash") @db.VarChar
+  fullName     String   @map("full_name") @db.VarChar
+  phoneNumber  String?  @map("phone_number") @db.VarChar
+  role         Role     @default(customer)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customRequests CustomRequest[]
+
+  @@map("users")
+}
+
+model Track {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String      @db.VarChar
+  slug            String      @unique @db.VarChar
+  description     String?     @db.Text
+  genre           String      @db.VarChar
+  mood            String      @db.VarChar
+  bpm             Int?
+  durationSeconds Int         @map("duration_seconds")
+  previewFileUrl  String      @map("preview_file_url") @db.VarChar
+  originalFileKey String?     @map("original_file_key") @db.VarChar
+  coverImageUrl   String?     @map("cover_image_url") @db.VarChar
+  status          TrackStatus @default(draft)
+  reservedUntil   DateTime?   @map("reserved_until") @db.Timestamptz(6)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([genre])
+  @@index([mood])
+  @@index([createdAt])
+  @@map("tracks")
+}
+
+model CustomRequest {
+  id               String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String?             @map("user_id") @db.Uuid
+  user             User?               @relation(fields: [userId], references: [id])
+  customerName     String              @map("customer_name") @db.VarChar
+  customerEmail    String              @map("customer_email") @db.VarChar
+  customerPhone    String?             @map("customer_phone") @db.VarChar
+  briefDescription String              @map("brief_description") @db.Text
+  referenceLinks   String?             @map("reference_links") @db.Text
+  genrePreference  String?             @map("genre_preference") @db.VarChar
+  targetDuration   String?             @map("target_duration") @db.VarChar
+  budgetEstimate   BigInt?             @map("budget_estimate")
+  quotedPrice      BigInt?             @map("quoted_price")
+  depositPercent   Int?                @map("deposit_percent")
+  depositAmount    BigInt?             @map("deposit_amount")
+  remainingAmount  BigInt?             @map("remaining_amount")
+  status           CustomRequestStatus @default(submitted)
+  finalFileKey     String?             @map("final_file_key") @db.VarChar
+  revisionLimit    Int                 @default(2) @map("revision_limit")
+  revisionUsed     Int                 @default(0) @map("revision_used")
+  notes            String?             @db.Text
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
+  @@map("custom_requests")
+}

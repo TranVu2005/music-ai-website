@@ -6,6 +6,35 @@
 
 ---
 
+## 2026-09-23 — Task 002: Prisma Schema and Database Seed (PR #8)
+
+1. **Relational Database Schema (Phase 1)**:
+   - Defined Phase 1 PostgreSQL schema in `src/db/schema.prisma` with 3 core models: `User` (`users`), `Track` (`tracks`), and `CustomRequest` (`custom_requests`).
+   - Mapped models and columns to `snake_case` in PostgreSQL while exposing camelCase fields in Prisma Client.
+   - Standardized all primary keys to UUID using PostgreSQL native `gen_random_uuid()` default.
+   - Standardized all timestamp columns to `@db.Timestamptz(6)` with `DEFAULT now() / CURRENT_TIMESTAMP` on `created_at` and `@default(now()) @updatedAt` on `updated_at`.
+   - Defined 3 lowercase snake_case enum types: `role` (`admin`, `customer`), `track_status` (`draft`, `published`, `reserved`, `sold_exclusive`, `archived`), and `custom_request_status` (`submitted`, `quoted`, `deposit_pending`, `in_progress`, `demo_sent`, `revising`, `approved`, `completed`, `cancelled`).
+   - Explicitly omitted `reserved_by_order_id` from `tracks` (deferred to Phase 2 with `orders`), while preserving nullable `reserved_until` and all 5 track statuses for seamless forward compatibility.
+   - Created 7 secondary indexes (`tracks_status_idx`, `tracks_genre_idx`, `tracks_mood_idx`, `tracks_created_at_idx`, `custom_requests_status_idx`, `custom_requests_created_at_idx`, `custom_requests_user_id_idx`) plus unique indexes on `users.email` and `tracks.slug`.
+
+2. **Database Migration & Client Generation**:
+   - Generated initial PostgreSQL migration `src/db/migrations/20260922190651_init_phase1_schema/migration.sql` via `prisma migrate dev`.
+   - Generated typed Prisma Client (`@prisma/client` 6.19.3).
+
+3. **Idempotent Seed Script & Audio Preview Placeholders**:
+   - Created `src/db/seed.ts` populating 5 diverse sample tracks (`Đêm Đông Hà Nội`, `Nắng Sài Gòn`, `Khoảng Lặng Tây Nguyên`, `Nhịp Sống Phố Thị`, `Hoàng Hôn Sông Hương`) with realistic Vietnamese metadata and `status = 'published'`.
+   - Enforced non-destructive idempotency via `prisma.track.upsert({ where: { slug }, ... })` without truncating or deleting data.
+   - Added `"tsx": "4.19.3"` to `devDependencies` and configured `"prisma": { "seed": "tsx src/db/seed.ts" }` and `"db:seed": "prisma db seed"`.
+   - Committed 5 silent 64 kbps stereo MP3 preview files (~40 KB each) in `public/audio/previews/<slug>.mp3` passing the audio guard.
+
+4. **Integration Testing & CI Pipeline Updates**:
+   - Implemented `test/db/migration.test.ts` asserting table schemas, absence of `reserved_by_order_id`, enum values, timestamp types, and index existence via `information_schema` and `pg_indexes`.
+   - Implemented `test/db/seed.test.ts` asserting seed idempotency, track metadata, and file existence in `public/audio/previews/`.
+   - Added environment guards so database tests skip cleanly when `DATABASE_URL` is unset locally but hard-fail if missing when `CI=true`.
+   - Updated `.github/workflows/ci.yml` `checks` job to run `npm run db:seed` after `npm run db:migrate:deploy` and before `npm run test`.
+
+---
+
 ## 2026-09-22 — Task 001: Project Setup, CI Pipeline, Audio Guard (PR #7)
 
 1. **Next.js Fullstack Monolith Initialization**:

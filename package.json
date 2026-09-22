@@ -12,11 +12,13 @@
     "test": "vitest run",
     "prisma:generate": "prisma generate",
     "db:migrate:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
     "check:audio": "sh tools/check-audio.sh",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "prisma": {
-    "schema": "src/db/schema.prisma"
+    "schema": "src/db/schema.prisma",
+    "seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "6.19.3",
@@ -33,6 +35,7 @@
     "eslint-config-next": "16.3.6",
     "prisma": "6.19.3",
     "tailwindcss": "4.3.3",
+    "tsx": "4.19.3",
     "typescript": "5.9.3",
     "vitest": "4.1.11"
   }

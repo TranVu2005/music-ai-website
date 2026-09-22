@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-22 (PR #7)
+> Last updated: 2026-09-23 (PR #8)
 > Purpose: single handoff document for any new chat, reviewer or agent. Read this file and `CHANGELOG.md` first.
 > Update rule: every PR that changes a decision, a task status or an open item updates this file in the same PR.
 
@@ -66,8 +66,8 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 
 | Task | Owner | Week | Depends on | Status |
 |---|---|---|---|---|
-| 001 Project setup, CI, audio guard | DevOps | 1 | - | In review (PR #7) |
-| 002 Prisma schema (users, tracks, custom_requests) + seed | Backend | 1 | 001 | Waiting |
+| 001 Project setup, CI, audio guard | DevOps | 1 | - | Done (PR #7) |
+| 002 Prisma schema (users, tracks, custom_requests) + seed | Backend | 1 | 001 | In review (PR #8) |
 | 005 UI design prototypes (Home, Catalog) | Frontend | 1 | brand name + style | Blocked on owner input |
 | 003 Preview generator (FFmpeg + watermark) | Backend | 2 | 001 | Waiting |
 | 004 Catalog API | Backend | 2 | 002 | Waiting |
@@ -100,6 +100,8 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 
 ## 7. Known follow-ups
 
+- CI actions versions: actions/checkout@v4 and actions/setup-node@v4 run on deprecated Node 20 runner; bump to v5 and pin runs-on: ubuntu-24.04 before ubuntu-latest moves to Ubuntu 26 on 2026-10-19.
+- npm audit: 3 high advisories from deepmerge-ts via prisma -> @prisma/config (dev dependency only, not in the runtime image); re-check when upgrading to Prisma 7.
 - Neon free-plan egress (5 GB) and resume latency: confirm on the official page during the pre-deploy checklist.
 - Phase 2: validate the 2 vCPU / 4 GB estimate with a load test; add `tracks.reserved_by_order_id` FK in the Phase 2 migration.
 - Stale remote branches (`docs/phase1-tasks`, `docs/task-amendments`, `docs/free-demo`, `docs/hosting-figures`) can be deleted.
