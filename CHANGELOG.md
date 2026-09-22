@@ -6,6 +6,31 @@
 
 ---
 
+## 2026-09-22 — Task 001: Project Setup, CI Pipeline, Audio Guard (PR #7)
+
+1. **Next.js Fullstack Monolith Initialization**:
+   - Initialized base project with Next.js 16.3.6 (`output: 'standalone'`), React 19.3.0, TypeScript 5.9.3 (strict), Tailwind CSS 4.3.3, and Vitest 4.1.11.
+   - Pinned exact dependency versions without carets/tildes, verified for Node 20 runtime compatibility with zero peer-dependency warnings.
+   - Created minimal root layout (`src/app/layout.tsx`) and placeholder home page (`src/app/page.tsx`).
+   - Implemented unauthenticated, zero-external-dependency health Route Handler (`GET /api/health` with `export const dynamic = "force-dynamic"`) returning `{ status: "ok" }`.
+
+2. **Prisma ORM Configuration**:
+   - Configured Prisma 6.19.3 schema at `src/db/schema.prisma` via `package.json#prisma`.
+   - Included both runtime pooled connection (`DATABASE_URL`) and direct migration connection (`DIRECT_URL`).
+   - Documented schema location, connection separation, deprecation note, and Prisma 7 migration path (`prisma.config.ts`) in `README.md`.
+
+3. **Audio Asset Guard & DevOps Controls**:
+   - Created `tools/check-audio.sh` POSIX shell script with `--staged` and default `git ls-files` modes to block unapproved audio formats outside `public/audio/previews/**` and `assets/watermark/**` or files >15 MB.
+   - Installed pre-commit hook in `.githooks/pre-commit` via `"prepare": "git config core.hooksPath .githooks || true"`.
+   - Added `.gitattributes` enforcing LF line endings and marked shell scripts executable (`100755`).
+   - Configured `.dockerignore` excluding sensitive, cache, and documentation directories while retaining `.env.example`.
+
+4. **Automated CI Workflow (`.github/workflows/ci.yml`)**:
+   - Configured `checks` job with `postgres:16-alpine` service, `actions/setup-node@v4` with `cache: 'npm'`, running audio guard, linter, typecheck, prisma generate, vitest suite, direct migration check, and Next.js standalone build.
+   - Configured `docker` job building `build/deploy/Dockerfile` and polling `GET /api/health` on port 3000.
+
+---
+
 ## 2026-09-22 — Agent Rules Moved to AGENTS.md & Project Status Document
 
 1. **Agent Rules Canonicalized in `AGENTS.md`**:

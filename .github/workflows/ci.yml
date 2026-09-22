@@ -7,9 +7,28 @@ on:
     branches: [ main ]
 
 jobs:
-  lint-and-test:
-    name: Lint, Test and Build
+  checks:
+    name: Lint, Typecheck, Test and Build
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: music_shop_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/music_shop_db?schema=public"
+      DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/music_shop_db?schema=public"
 
     steps:
       - name: Checkout repository
@@ -19,18 +38,56 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          # Note: Enable npm caching once package-lock.json is committed in Task 001
-          # cache: 'npm'
+          cache: 'npm'
 
-      # Enable application steps in Task 001 once dependencies and scripts are initialized:
-      # - name: Install dependencies
-      #   run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      # - name: Run Linter
-      #   run: npm run lint
+      - name: Check audio file guard
+        run: npm run check:audio
 
-      # - name: Run Unit & Integration Tests
-      #   run: npm run test
+      - name: Run linter
+        run: npm run lint
 
-      # - name: Build Application
-      #   run: npm run build
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+
+      - name: Run unit and integration tests
+        run: npm run test
+
+      - name: Deploy database migrations (validate direct URL)
+        run: npm run db:migrate:deploy
+
+      - name: Build application
+        run: npm run build
+
+  docker:
+    name: Docker Build & Health Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -f build/deploy/Dockerfile -t music-shop:ci .
+
+      - name: Run Docker container
+        run: docker run -d -p 3000:3000 --name music-shop-app music-shop:ci
+
+      - name: Poll health check endpoint
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/api/health; then
+              echo "Health check passed!"
+              exit 0
+            fi
+            echo "Waiting for container to be ready... ($i/30)"
+            sleep 1
+          done
+          echo "Health check timed out after 30 seconds"
+          docker logs music-shop-app
+          exit 1

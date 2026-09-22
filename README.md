@@ -49,12 +49,53 @@ The project strictly follows a **Docs-First** methodology:
 
 ## Quick Start
 
-1. Copy the environment configuration template:
+1. Install project dependencies:
+   ```bash
+   npm ci
+   ```
+2. Copy the environment configuration template:
    ```bash
    cp .env.example .env
    ```
-2. Configure required environment variables in `.env`.
-3. Follow project setup instructions in [Task 001](./docs/tasks/001-project-setup.md).
+3. Start the local PostgreSQL database service:
+   ```bash
+   docker compose -f build/deploy/docker-compose.yml up -d postgres
+   ```
+4. Deploy migrations / initialize database tracking:
+   ```bash
+   npm run db:migrate:deploy
+   ```
+5. Start local development server:
+   ```bash
+   npm run dev
+   ```
+
+## Database
+
+### Prisma ORM Configuration
+
+The project manages database schemas and migrations via Prisma ORM:
+- **Schema Location**: Located at `src/db/schema.prisma` to keep database configuration and migrations (`src/db/migrations/`) cleanly encapsulated under `src/db/`.
+- **Wiring**: Configured via `package.json`:
+  ```json
+  "prisma": {
+    "schema": "src/db/schema.prisma"
+  }
+  ```
+- **Connection Separation**:
+  - `DATABASE_URL`: Connection string used by the application runtime and Next.js Route Handlers (points to Neon pooled connection pooler in Phase 1 demo or local database).
+  - `DIRECT_URL`: Unpooled direct connection string used by Prisma migration engine (`prisma migrate deploy` / `npm run db:migrate:deploy`) to execute schema DDL statements directly without pooler restrictions.
+- **Prisma 6 Deprecation & Prisma 7 Migration Path**:
+  In Prisma 6.x, specifying schema location via `package.json#prisma` emits a deprecation warning advising migration to `prisma.config.ts`. In accordance with Lead Decision 1, `package.json#prisma` is retained for 6.x stability, and can cleanly migrate to `prisma.config.ts` when upgrading to Prisma 7:
+  ```typescript
+  // prisma.config.ts (Prisma 7 migration path)
+  import { defineConfig } from "prisma/config";
+  export default defineConfig({
+    schema: "src/db/schema.prisma",
+  });
+  ```
+- **Container Parity**:
+  The production Dockerfile (`build/deploy/Dockerfile`) mirrors this layout by copying `src/db` before running `npm ci` and copying generated engines from `node_modules/.prisma` and schema definitions from `src/db` into the final standalone runner stage.
 
 ## Live demo fallback
 

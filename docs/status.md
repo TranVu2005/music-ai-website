@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-22 (PR #5)
+> Last updated: 2026-09-22 (PR #7)
 > Purpose: single handoff document for any new chat, reviewer or agent. Read this file and `CHANGELOG.md` first.
 > Update rule: every PR that changes a decision, a task status or an open item updates this file in the same PR.
 
@@ -35,6 +35,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | Area | Decision |
 |---|---|
 | Stack | Next.js (TypeScript, App Router) monolith with Route Handlers; PostgreSQL + Prisma; Tailwind; Vitest; Docker (standalone output) |
+| Agent runtime | Executing agents run in Google Antigravity (Gemini). Rules: AGENTS.md (CLAUDE.md, GEMINI.md point to it). Skills: .agent/skills/ |
 | Locking queries | Run inside `prisma.$transaction` with `prisma.$queryRaw` (`SELECT ... FOR UPDATE`); lock order: order row, then tracks by ascending id, on every path including the expiry sweep |
 | Payment | VietQR (EMVCo payload generated locally, transfer content = `order_code`) + manual confirmation by the owner in admin. No webhooks in scope; `PaymentProvider` interface kept for a future adapter |
 | Cart | Multiple items per order (`orders` + `order_items`); one license per track per order |
@@ -65,7 +66,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 
 | Task | Owner | Week | Depends on | Status |
 |---|---|---|---|---|
-| 001 Project setup, CI, audio guard | DevOps | 1 | - | Ready to assign |
+| 001 Project setup, CI, audio guard | DevOps | 1 | - | In review (PR #7) |
 | 002 Prisma schema (users, tracks, custom_requests) + seed | Backend | 1 | 001 | Waiting |
 | 005 UI design prototypes (Home, Catalog) | Frontend | 1 | brand name + style | Blocked on owner input |
 | 003 Preview generator (FFmpeg + watermark) | Backend | 2 | 001 | Waiting |
@@ -77,8 +78,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 
 ## 5. Next actions
 
-1. Assign Task 001 to the DevOps agent (branch `feat/task-001-project-setup`). Includes: `.dockerignore`, `prisma:generate` script, record the Prisma direct-URL configuration in README, CI green with lint/typecheck/test/build/audio guard, `docker build` + `GET /api/health` 200.
-2. Assign Task 005 once the brand name and style direction are provided (or with placeholders).
+1. Assign Task 005 once the brand name and style direction are provided (or with placeholders).
 
 ## 6. Open items
 

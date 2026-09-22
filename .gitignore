@@ -9,6 +9,7 @@ build/*
 !build/deploy/
 .next/
 out/
+next-env.d.ts
 
 # Environment files
 .env
