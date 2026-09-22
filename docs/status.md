@@ -87,7 +87,6 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 - [ ] Make the GitHub repository private (currently public, includes the client plan PDF).
 - [ ] Before Task 009: create Neon, Render and Resend accounts (Resend with the owner's mailbox); read the Render and Neon free-tier terms.
 - [ ] Before week 6: choose the paid VPS; request monthly quotes from 2-3 providers (DigitalOcean verified at $24/month; domestic providers "verify before use").
-- [ ] Confirm `.claude/skills/` in the repo is intentional.
 
 ### Client (due dates from the client plan)
 - [ ] At least 5 sample tracks with metadata, About/Contact content: start of week 2.
