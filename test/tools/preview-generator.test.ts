@@ -344,12 +344,6 @@ describeFfmpeg("Task 003: Audio Preview Generator Utility", () => {
       expect(resInRepo.stderr).toContain("Error: MASTERS_DIR must not resolve inside the repository:");
 
       // 6. Path traversal attempting to escape MASTERS_DIR
-      const resTraversal = runGenerator(["../../secret.wav", "test-003-traversal"], {
-        MASTERS_DIR: tempMastersDir,
-      });
-      expect(resTraversal.status).toBe(3);
-
-      // 7. Symlink / Junction escaping MASTERS_DIR
       const outsideDir = fs.mkdtempSync(path.join(os.tmpdir(), "outside-masters-"));
       const outsideFile = path.join(outsideDir, "outside.wav");
       execSync(
@@ -359,6 +353,22 @@ describeFfmpeg("Task 003: Audio Preview Generator Utility", () => {
 
       const insideJunction = path.join(tempMastersDir, "junction_link");
       try {
+        // Path traversal using an EXISTING file outside MASTERS_DIR
+        const relPathToOutside = path.relative(tempMastersDir, outsideFile);
+        const resTraversalExisting = runGenerator([relPathToOutside, "test-003-traversal-existing"], {
+          MASTERS_DIR: tempMastersDir,
+        });
+        expect(resTraversalExisting.status).toBe(3);
+        expect(resTraversalExisting.stderr).toContain("resolves outside MASTERS_DIR");
+
+        // Non-existent path traversal case asserting "does not exist"
+        const resTraversalNonExistent = runGenerator(["../../secret-nonexistent.wav", "test-003-traversal-nonexistent"], {
+          MASTERS_DIR: tempMastersDir,
+        });
+        expect(resTraversalNonExistent.status).toBe(3);
+        expect(resTraversalNonExistent.stderr).toContain("Error: Master file does not exist:");
+
+        // 7. Symlink / Junction escaping MASTERS_DIR
         if (process.platform === "win32") {
           fs.symlinkSync(outsideDir, insideJunction, "junction");
         } else {

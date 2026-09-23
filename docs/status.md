@@ -103,6 +103,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 - Raw SQL UPDATEs (`$queryRaw` locking paths, Phase 2) must set `updated_at = now()` explicitly; `@updatedAt` is client-side only.
 - Seed must refuse to run when NODE_ENV=production (Phase 2 hardening).
 - Placeholder previews are ~5 s silent clips; real durationSeconds come from Task 003.
+- Preview generator runs via tsx (devDependency) and is not runnable in the runner image; Phase 2 upload processing needs a compiled tool or worker.
 - CI actions versions: actions/checkout@v4 and actions/setup-node@v4 run on deprecated Node 20 runner; bump to v5 and pin runs-on: ubuntu-24.04 before ubuntu-latest moves to Ubuntu 26 on 2026-10-19.
 - npm audit: 3 high advisories from deepmerge-ts via prisma -> @prisma/config (dev dependency only, not in the runtime image); re-check when upgrading to Prisma 7.
 - Neon free-plan egress (5 GB) and resume latency: confirm on the official page during the pre-deploy checklist.

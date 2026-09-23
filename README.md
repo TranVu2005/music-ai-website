@@ -128,7 +128,7 @@ npm run tools:preview-gen -- <master-file> <slug> [--force]
 
 - **Output Encoding**: CBR 128 kbps, 44.1 kHz stereo (`libmp3lame`). Mono masters are automatically upmixed to stereo.
 - **Audio Watermarking**: Mixes `assets/watermark/tag.wav` repeatedly every 25 seconds throughout the track, starting at 10 seconds. Tracks shorter than 25 seconds receive at least one centered watermark tag.
-- **Volume & Limiting**: The music level is fully preserved (`normalize=0`), the watermark is attenuated by -12 dB, and an audio peak limiter (`alimiter=limit=0.891:level=disabled`) guarantees output peaks never exceed -1 dBFS, preventing digital clipping.
+- **Volume & Limiting**: The music level is fully preserved (`normalize=0`), the watermark is attenuated by -12 dB, and an audio peak limiter (`alimiter=limit=0.891:level=disabled`) limits pre-encode peaks to -1 dBFS (decoded MP3 may overshoot slightly), preventing digital clipping.
 - **Metadata Scrubbing**: Master file metadata tags are scrubbed via `-map_metadata -1`.
 - **Atomic File Writing**: Previews are written to temporary files and atomically renamed, ensuring partial MP3s are never committed or left behind.
 
