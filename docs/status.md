@@ -61,7 +61,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | Docs translated to English | Done |
 | Legacy scaffold cleanup (Express/MinIO/PayOS remnants), Dockerfile, compose, `.env.example` | Done in docs PRs; verified by Task 001 |
 | Phase 1 task specs 001-009 | Done |
-| Task 010 agent runtime handover (Gemini to Codex + Claude Code) | In progress on `chore/task-010-agent-runtime-handover` |
+| Task 010 agent runtime handover (Gemini to Codex + Claude Code) | In review (PR #11) |
 | Phase 1 implementation | Not started |
 
 ### Phase 1 tasks (weeks 1-3)
