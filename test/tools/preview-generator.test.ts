@@ -34,7 +34,10 @@ describeFfmpeg("Task 003: Audio Preview Generator Utility", () => {
   let originalPlaceholderFiles: string[] = [];
   const originalHashes: Record<string, string> = {};
 
-  function runGenerator(args: string[], envOverrides: NodeJS.ProcessEnv = {}) {
+  function runGenerator(
+    args: string[],
+    envOverrides: Record<string, string | undefined> = {}
+  ) {
     const res = spawnSync(process.execPath, [tsxCli, scriptPath, ...args], {
       cwd: repoRoot,
       env: { ...process.env, ...envOverrides },
