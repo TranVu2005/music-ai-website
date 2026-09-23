@@ -4,6 +4,15 @@
 > **Source of Truth**: `docs/project-plan.md` (directly extracted and systematized from the client implementation plan *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version") - 2026-09-20).  
 > **Project Scope**: Strictly frozen at exactly 13 features allocated across 3 phases in a 5 / 4 / 4 ratio (Phase 1: 5 features, Phase 2: 4 features, Phase 3: 4 features).
 
+## 2026-09-23 — Task 010: Agent Runtime Handover
+
+- Moved the canonical repository skills into `.agents/skills/` for Codex discovery; `CLAUDE.md` points Claude Code to the same skills on demand.
+- Added plan approval, verification evidence, command, and role rules to `AGENTS.md`; updated the task template and recorded the handover in `docs/status.md`.
+- Updated `eslint.config.mjs` and `vitest.config.ts` to ignore the relocated `.agents/` skills directory.
+- Marked `GEMINI.md` deprecated while retaining the Gemini settings for rollback.
+
+---
+
 ## 2026-09-23 — Task 003: Audio Preview Generator Utility (PR #9)
 
 1. **CLI Preview Generator Utility (`tools/generate-preview.ts`)**:
@@ -98,8 +107,8 @@
    - Added single handoff document (`docs/status.md`) for new chats, reviewers, and agents.
    - Formalized roles (Product Owner, Lead/Reviewer Claude, Executing Agents Gemini), source of truth inventory, finalized architectural decisions table, Phase 1 implementation task status (001-009), next actions, client/owner open items, and known follow-up items.
 
-3. **Workspace Skills Setup for Antigravity (`.agent/skills/`)**:
-   - Moved all 14 workspace skills from `.claude/skills/` to `.agent/skills/` with full git history preservation.
+3. **Workspace Skills Setup for Antigravity (former location)**:
+   - Moved all 14 workspace skills from the former Claude Code location to the Antigravity location with full git history preservation; Task 010 later moved them to `.agents/skills/`.
    - Enables native skill discovery for Google Antigravity in the project workspace across all procedure runbooks (`brainstorming`, `dispatching-parallel-agents`, `executing-plans`, `finishing-a-development-branch`, `receiving-code-review`, `requesting-code-review`, `subagent-driven-development`, `systematic-debugging`, `test-driven-development`, `using-git-worktrees`, `using-superpowers`, `verification-before-completion`, `writing-plans`, `writing-skills`).
 
 ---

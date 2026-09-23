@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-23 (PR #9 merged)
+> Last updated: 2026-09-23 (Task 010 agent runtime handover)
 > Purpose: single handoff document for any new chat, reviewer or agent. Read this file and `CHANGELOG.md` first.
 > Update rule: every PR that changes a decision, a task status or an open item updates this file in the same PR.
 
@@ -9,8 +9,9 @@
 | Role | Who | Responsibility |
 |---|---|---|
 | Product owner | Vu | Final decisions, merges PRs, relays client input |
-| Lead / reviewer | Claude (claude.ai Project "Website bán âm nhạc") | Breaks down work, writes English agent prompts, reviews every PR against the docs by pulling the repo |
-| Executing agents | Gemini 3.8 (Architect, Backend, Frontend, DevOps, QA roles) | Write docs and code on branches, open PRs, paste raw VERIFY output |
+| Lead / final reviewer | Claude (claude.ai Project "Website bán âm nhạc") | Breaks down work, writes English agent prompts, reviews every PR against the repository docs |
+| Implementer | OpenAI Codex | Plans, implements approved tasks on branches, opens PRs, pastes raw verification output |
+| PR reviewer | Claude Code | Reviews PRs against the task and architecture docs; never merges |
 
 Working rules: one task = one branch = one PR. Agents never merge. Reviews are based on the repo contents, not on agent reports. Every number, price or limit in the docs cites an official source or is marked "verify before use".
 
@@ -35,7 +36,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | Area | Decision |
 |---|---|
 | Stack | Next.js (TypeScript, App Router) monolith with Route Handlers; PostgreSQL + Prisma; Tailwind; Vitest; Docker (standalone output) |
-| Agent runtime | Executing agents run in Google Antigravity (Gemini). Rules: AGENTS.md (CLAUDE.md, GEMINI.md point to it). Skills: .agent/skills/ |
+| Agent runtime | OpenAI Codex implements approved tasks; Claude Code reviews PRs; Claude in the claude.ai Project remains lead. Rules: AGENTS.md (CLAUDE.md and rollback-only GEMINI.md point to it). Canonical skills: `.agents/skills/` |
 | Locking queries | Run inside `prisma.$transaction` with `prisma.$queryRaw` (`SELECT ... FOR UPDATE`); lock order: order row, then tracks by ascending id, on every path including the expiry sweep |
 | Payment | VietQR (EMVCo payload generated locally, transfer content = `order_code`) + manual confirmation by the owner in admin. No webhooks in scope; `PaymentProvider` interface kept for a future adapter |
 | Cart | Multiple items per order (`orders` + `order_items`); one license per track per order |
@@ -60,6 +61,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | Docs translated to English | Done |
 | Legacy scaffold cleanup (Express/MinIO/PayOS remnants), Dockerfile, compose, `.env.example` | Done in docs PRs; verified by Task 001 |
 | Phase 1 task specs 001-009 | Done |
+| Task 010 agent runtime handover (Gemini to Codex + Claude Code) | Done (PR #11) |
 | Phase 1 implementation | Not started |
 
 ### Phase 1 tasks (weeks 1-3)

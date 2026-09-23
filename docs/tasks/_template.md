@@ -29,3 +29,12 @@
   - [ ] Unit tests: ...
   - [ ] Integration tests: ...
   - [ ] Payment / file authorization test cases (if applicable).
+
+## 6. Acceptance evidence
+- Paste the raw output of every required verification command in the PR body, including failures.
+- Include the completed Definition of Done checklist and `git diff --stat main` in the PR body.
+- Link the PR's CI run and identify any unavailable local prerequisite.
+
+## 7. Plan approval
+- Share a numbered implementation plan listing files, exact changes, and open questions before changing files.
+- Record the product owner's explicit approval before implementation begins.
