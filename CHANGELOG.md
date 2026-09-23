@@ -11,6 +11,26 @@
 - Updated `eslint.config.mjs` and `vitest.config.ts` to ignore the relocated `.agents/` skills directory.
 - Marked `GEMINI.md` deprecated while retaining the Gemini settings for rollback.
 
+## 2026-09-23 — Task 004: Catalog REST API Handlers
+
+1. **Next.js 16 Route Handlers**:
+   - Implemented `GET /api/tracks` with pagination (`page`, `limit` clamped to 50), keyword search `q` across `title` and `description`, and categorical filters (`genre`, `mood`).
+   - Implemented `GET /api/tracks/[slug]` for single track retrieval using Next.js 16 dynamic parameter resolution (`await context.params`), returning HTTP 200 or HTTP 404 for missing/non-published tracks.
+   - Implemented `GET /api/filters` querying distinct published genres and moods, returning alphabetically sorted and deduplicated lists.
+   - Enforced runtime-only dynamic isolation via `export const dynamic = "force-dynamic"` across all route handlers to prevent database queries during `next build`.
+
+2. **Data Protection & Serialization**:
+   - Created `src/lib/api/serialization.ts` defining `TRACK_PUBLIC_SELECT` allowlist restricting database queries to 12 public fields.
+   - Guaranteed zero exposure of sensitive fields (`original_file_key`, `status`, `reserved_until`) with both query allowlisting and serialization sanitization.
+   - Implemented consistent error envelope `{ error: { code, message } }` for 400, 404, and 500 without leaking stack traces or database internals.
+   - Ignored `bpm` in query parameters (metadata display only).
+   - Escaped SQL wildcards (`%`, `_`) in `q` searches to ensure literal search matching.
+
+3. **Comprehensive Automated Testing Suite**:
+   - Implemented `test/api/catalog.test.ts` covering query parsing, pagination clamping, error responses, search case-insensitivity, wildcard handling, and filter deduplication.
+   - Enforced test isolation using `test-004-` slug prefixes for temporary fixtures with cleanup in `beforeAll`, `afterEach`, and `afterAll`, ensuring zero interference with `test/db/seed.test.ts`.
+   - Added recursive security assertion validating complete absence of forbidden keys across all API responses.
+
 ---
 
 ## 2026-09-23 — Task 003: Audio Preview Generator Utility (PR #9)
