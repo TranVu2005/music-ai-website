@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-23 (PR #8)
+> Last updated: 2026-09-23 (PR #9)
 > Purpose: single handoff document for any new chat, reviewer or agent. Read this file and `CHANGELOG.md` first.
 > Update rule: every PR that changes a decision, a task status or an open item updates this file in the same PR.
 
@@ -67,9 +67,9 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | Task | Owner | Week | Depends on | Status |
 |---|---|---|---|---|
 | 001 Project setup, CI, audio guard | DevOps | 1 | - | Done (PR #7) |
-| 002 Prisma schema (users, tracks, custom_requests) + seed | Backend | 1 | 001 | In review (PR #8) |
+| 002 Prisma schema (users, tracks, custom_requests) + seed | Backend | 1 | 001 | Done (PR #8) |
 | 005 UI design prototypes (Home, Catalog) | Frontend | 1 | brand name + style | Blocked on owner input |
-| 003 Preview generator (FFmpeg + watermark) | Backend | 2 | 001 | Waiting |
+| 003 Preview generator (FFmpeg + watermark) | Backend | 2 | 001 | In review (PR #9) |
 | 004 Catalog API | Backend | 2 | 002 | Waiting |
 | 007 Catalog UI + audio player | Frontend | 2 | 004, approved 005 | Waiting |
 | 006 Static pages (Home, About, Contact, Pricing) | Frontend | 3 | approved 005, rebases on 007 | Waiting |

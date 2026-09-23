@@ -1,17 +1,18 @@
 # Task 003: Audio Preview Generator Utility Implementation Plan
 
-> Status: Proposed for Lead review on 2026-09-23.
+> Status: Approved with changes on 2026-09-23 by Lead review.
 
 ## 1. Files
 
 ### Files to Create
-- `docs/plans/003-preview-generator.md` — Implementation plan committed first.
+- `docs/plans/003-preview-generator.md` — Approved implementation plan committed first.
 - `tools/generate-preview.ts` — CLI preview generator utility resolving master files relative to `MASTERS_DIR`, mixing periodic watermarks, and producing 128 kbps 44.1 kHz stereo MP3 previews.
 - `assets/watermark/tag.wav` — Synthesized 2.0 s placeholder watermark tone (WAV PCM 16-bit, 44.1 kHz stereo) conforming to `tools/check-audio.sh` allowlist and size limits.
-- `test/tools/preview-generator.test.ts` — Vitest automated test suite covering stream properties, watermark positioning via `silencedetect`, short master handling, and rejection error cases.
+- `test/tools/preview-generator.test.ts` — Vitest automated test suite covering stream properties, watermark positioning via `silencedetect`, short master handling, peak limiting, and rejection error cases.
 
 ### Files to Modify
 - `package.json` — Add script `"tools:preview-gen": "tsx tools/generate-preview.ts"`. (No new dependencies; `tsx` is already in `devDependencies`).
+- `.gitignore` — Add `public/audio/previews/.tmp-*` pattern so ephemeral preview generator temp files are ignored.
 - `.env.example` — Document `MASTERS_DIR` environment variable with example paths outside the repository.
 - `.github/workflows/ci.yml` — Add an `Ensure FFmpeg` step in the `checks` job to verify/install `ffmpeg` and `ffprobe` on the GitHub Actions runner.
 - `README.md` — Document `MASTERS_DIR` configuration, `npm run tools:preview-gen` CLI usage, and the FFmpeg command used to generate `assets/watermark/tag.wav`.
@@ -74,30 +75,39 @@
      - Successive tags: `t_k = t_{k-1} + INTERVAL` (10 s, 35 s, 60 s, 85 s, ...) while `t_k < D`.
      - For a 65 s master: tags placed at 10 s, 35 s, 60 s (exactly 3 tags, consecutive gap = 25 s).
 
-### Watermark Level & Music Volume Preservation
+### Watermark Level, Limiting & Music Volume Preservation
 - **Preservation of Music Level**:
   - FFmpeg's `amix` filter defaults to `normalize=1`, which divides all input streams by $1/N$ (lowering volume by -6 dB for 2 inputs).
   - We explicitly configure `normalize=0`:
     ```
     amix=inputs=2:duration=first:dropout_transition=0:normalize=0
     ```
-  - `normalize=0` sums audio samples without attenuation, preserving 100% of the master music's original dynamic range, loudness, and peaks (0 dB modification).
+  - `normalize=0` sums audio samples without downscaling, preserving the music's original dynamic range and loudness during unwatermarked passages.
+- **Peak Limiting to Prevent Clipping**:
+  - Because `normalize=0` sums master music and watermark signals directly, summing a near-full-scale master (e.g. -0.1 dBFS) and a watermark at -15 dBFS will exceed 0 dBFS and cause digital clipping (clipping distortion).
+  - To prevent clipping while keeping music untouched during silent watermark periods, we append an audio limiter filter immediately following `amix`:
+    ```
+    ,alimiter=limit=0.891:level=disabled[out]
+    ```
+    `limit=0.891` corresponds to -1.0 dBFS ceiling ($10^{-1/20} \approx 0.89125$), guaranteeing that the mixed output never exceeds -1.0 dBFS and produces zero full-scale clipped samples even during loud musical peaks.
 - **Watermark Attenuation**:
   - The watermark stream is attenuated using `volume=-12dB`.
   - With `assets/watermark/tag.wav` peaking around -3 dBFS, a -12 dB attenuation brings watermark peaks to approximately -15 dBFS.
-  - This ensures the voice tag is clearly audible over the music to deter unauthorized commercial use, while avoiding audible clipping when mixed with loud master sections.
+  - This ensures the voice tag is clearly audible over the music to deter unauthorized commercial use, while remaining balanced within the mix.
 
 ### Output Encoding
 - **Codec**: `libmp3lame`
 - **Bitrate**: CBR 128 kbps (`-b:a 128k`)
 - **Sampling Rate**: 44.1 kHz (`-ar 44100` and `sample_rates=44100`)
 - **Channels**: Stereo 2 channels (`channel_layouts=stereo` in `aformat`, which automatically upmixes mono master tracks to dual identical channels L/R).
+- **Metadata Scrubbing**:
+  - Add `-map_metadata -1` to prevent any master file metadata tags (artist, copyright, proprietary comments) from leaking into public previews.
 
 ### Exact FFmpeg Filter Graph & Command Line
 The preview generator executes FFmpeg via `child_process.spawn("ffmpeg", args)` with an argument array (no shell string):
 
 ```bash
-ffmpeg -y -v error -i <masterPath> -i <tagPath> -filter_complex <filterGraph> -map "[out]" -c:a libmp3lame -b:a 128k <tempOutputPath>
+ffmpeg -y -v error -i <masterPath> -i <tagPath> -filter_complex <filterGraph> -map "[out]" -map_metadata -1 -c:a libmp3lame -b:a 128k <tempOutputPath>
 ```
 
 Where `<filterGraph>` is constructed dynamically based on $N$ scheduled tag offsets $d_0, d_1, \dots, d_{N-1}$ (in milliseconds):
@@ -106,7 +116,7 @@ Where `<filterGraph>` is constructed dynamically based on $N$ scheduled tag offs
 ```
 [0:a]aformat=channel_layouts=stereo:sample_rates=44100[music];
 [1:a]aformat=channel_layouts=stereo:sample_rates=44100,volume=-12dB,adelay=d0|d0[wm];
-[music][wm]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[out]
+[music][wm]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.891:level=disabled[out]
 ```
 
 **Case $N > 1$:**
@@ -119,7 +129,7 @@ Where `<filterGraph>` is constructed dynamically based on $N$ scheduled tag offs
 ...
 [t{N-1}]adelay=d_{N-1}|d_{N-1}[t{N-1}d];
 [t0d][t1d]...[t{N-1}d]amix=inputs=N:duration=longest:dropout_transition=0:normalize=0[wm];
-[music][wm]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[out]
+[music][wm]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,alimiter=limit=0.891:level=disabled[out]
 ```
 
 ### Generation of `assets/watermark/tag.wav`
@@ -138,18 +148,26 @@ Where `<filterGraph>` is constructed dynamically based on $N$ scheduled tag offs
 1. **`MASTERS_DIR` Containment & Existence**:
    - Check if `process.env.MASTERS_DIR` is set.
    - Verify directory exists via `fs.existsSync`.
-   - Resolve canonical path via `fs.realpathSync(mastersDir)` and compare against `fs.realpathSync(repoRoot)`:
-     - If `mastersRealPath === repoRealPath` or `mastersRealPath.startsWith(repoRealPath + path.sep)`, exit with code 2.
+   - Resolve canonical path via `fs.realpathSync.native(mastersDir)` and compare against `fs.realpathSync.native(repoRoot)`.
+   - Containment check helper:
+     ```typescript
+     function isInside(child: string, parent: string): boolean {
+       const rel = path.relative(parent, child);
+       return rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel);
+     }
+     ```
+   - If `isInside(mastersRealPath, repoRealPath)` or `mastersRealPath === repoRealPath`, exit with code 2.
 2. **Master File Path Traversal & Symlinks**:
    - Resolve master file path: `path.resolve(mastersRealPath, masterFile)`.
    - Verify file existence via `fs.existsSync`.
-   - Resolve canonical realpath via `fs.realpathSync(targetMasterPath)`:
-     - If `targetMasterRealPath` does not start with `mastersRealPath + path.sep`, reject traversal or symlink escape with exit code 3.
+   - Resolve canonical realpath via `fs.realpathSync.native(targetMasterPath)`.
+   - If `!isInside(targetMasterRealPath, mastersRealPath)` and `targetMasterRealPath !== mastersRealPath`, reject traversal or symlink escape with exit code 3.
 3. **Slug Validation**:
    - Enforce regex: `/^[a-z0-9]+(-[a-z0-9]+)*$/`. Rejects uppercase letters, leading/trailing hyphens, consecutive hyphens, spaces, and path separators.
-4. **Atomic Output Writing via Temp File**:
+4. **Atomic Output Writing via Temp File & Signal Handlers**:
    - Write output to temporary file `public/audio/previews/.tmp-<slug>-<random>.mp3` on the same directory/mount to ensure atomic `fs.renameSync` without `EXDEV` errors.
-   - Clean up temporary file in `finally` / error handler if FFmpeg fails, ensuring partial MP3 files are never left behind.
+   - Register process signal handlers for `SIGINT` and `SIGTERM` as well as `process.on("exit")` and `try/finally` blocks to remove any unrenamed `.tmp-*` file upon interruption or failure.
+   - `.gitignore` explicitly ignores `public/audio/previews/.tmp-*`.
 5. **Overwrite Protection**:
    - If `public/audio/previews/<slug>.mp3` already exists and `--force` is not provided, exit with code 4.
 6. **Cross-Platform Child Process Execution**:
@@ -179,6 +197,12 @@ if (!hasFfmpeg && process.env.CI === "true") {
 const describeFfmpeg = hasFfmpeg ? describe : describe.skip;
 ```
 
+### Test Configuration & Isolation
+- **Per-Test Timeout**: 60 seconds (`{ timeout: 60000 }`) on all FFmpeg integration tests.
+- **Test Slugs**: All test slugs strictly prefixed with `test-003-` (e.g. `test-003-sine-65`, `test-003-silent-65`, `test-003-short-8`, `test-003-limiter`).
+- **Placeholder Integrity**: Before the test suite runs, compute and store MD5 hashes of all 5 committed placeholder MP3s (`public/audio/previews/*.mp3`). In `afterAll`, assert all 5 MD5 hashes are identical.
+- **Working Tree Cleanliness**: In `afterEach` and `afterAll`, remove any `public/audio/previews/test-003-*.mp3` and any `.tmp-*` files, as well as the external temp `MASTERS_DIR`. Compare before/after snapshots of `public/audio/previews/` files to ensure zero stray files remain.
+
 ### Test Cases
 1. **Sine Input (~65 s)**:
    - Generate synthetic 65 s sine master in a temporary `MASTERS_DIR` (outside repo).
@@ -201,15 +225,20 @@ const describeFfmpeg = hasFfmpeg ? describe : describe.skip;
    - Generate 8 s sine master in temp `MASTERS_DIR`.
    - Run preview generator.
    - Verify output is generated successfully and contains at least one watermark tag.
-4. **Rejection & Error Handling**:
+4. **Limiter & Clipping Prevention**:
+   - Generate 20 s sine master peaking at -0.1 dBFS (`volume=0.9885`).
+   - Run preview generator (which overlays watermark at 10 s).
+   - Probe output using `ffmpeg -i <output> -af "astats" -f null -`.
+   - Assert `Peak level dB` < 0 dBFS (specifically $\le -0.9$ dBFS due to `alimiter=limit=0.891`), proving zero full-scale clipped samples around the watermark tag.
+5. **Rejection & Error Handling**:
    - Path traversal attempt (e.g. `../../secret.wav`) -> exit code 3.
-   - Master outside `MASTERS_DIR` via symlink -> exit code 3.
-   - `MASTERS_DIR` inside repository -> exit code 2.
+   - Master outside `MASTERS_DIR` via symlink:
+     - On Linux: `fs.symlinkSync(outsideMaster, insideLink)`.
+     - On Windows (win32): create directory junction via `fs.symlinkSync(outsideDir, insideJunction, "junction")`. If creation throws `EPERM`, skip that single test case with a clear diagnostic message.
+     - Generator rejects with exit code 3.
+   - `MASTERS_DIR` located inside repository -> exit code 2.
    - Invalid slug (e.g. `Track_01`, `slug..bad`, `-slug`) -> exit code 1.
    - Existing output file without `--force` -> exit code 4; with `--force` -> overwrites successfully (exit code 0).
-5. **Working Tree Cleanliness**:
-   - Test suite removes all temporary preview files in `public/audio/previews/` and removes temporary `MASTERS_DIR`.
-   - Asserts `git status --porcelain` is clean after execution.
 
 ---
 

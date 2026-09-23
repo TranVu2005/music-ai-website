@@ -4,6 +4,30 @@
 > **Source of Truth**: `docs/project-plan.md` (directly extracted and systematized from the client implementation plan *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version") - 2026-09-20).  
 > **Project Scope**: Strictly frozen at exactly 13 features allocated across 3 phases in a 5 / 4 / 4 ratio (Phase 1: 5 features, Phase 2: 4 features, Phase 3: 4 features).
 
+## 2026-09-23 — Task 003: Audio Preview Generator Utility (PR #9)
+
+1. **CLI Preview Generator Utility (`tools/generate-preview.ts`)**:
+   - Implemented automated CLI utility `npm run tools:preview-gen -- <master-file> <slug> [--force]` converting lossless master audio files into watermarked MP3 streaming previews at `public/audio/previews/<slug>.mp3`.
+   - Built with strict containment and path traversal protections: validates `MASTERS_DIR` (must exist and cannot resolve inside repository) and verifies master file cannot traverse or escape `MASTERS_DIR` via realpath and junction checks.
+   - Enforced slug format regex `^[a-z0-9]+(-[a-z0-9]+)*$` and overwrite protection requiring `--force`.
+   - Implemented atomic file writing via temporary files (`public/audio/previews/.tmp-*`) with `SIGINT`, `SIGTERM`, and `finally` cleanup handlers so corrupt or partial files are never left behind.
+   - Outputs strictly one JSON line on success: `{"slug","output","durationSeconds","bitrate","sampleRate","channels"}` extracted via `ffprobe`.
+
+2. **Watermark Schedule, Limiting & Quality Preservation**:
+   - Mixed periodic audio watermark (`assets/watermark/tag.wav`) repeating every 25 seconds throughout the track starting at 10 seconds.
+   - Tracks shorter than 25 seconds are guaranteed at least one watermark tag.
+   - Preserved 100% of music volume and dynamic range using `amix=...:normalize=0` with watermark attenuated to -12 dB.
+   - Prevented digital clipping on loud audio peaks by appending an audio peak limiter (`alimiter=limit=0.891:level=disabled`), capping mixed peaks at -1.0 dBFS with zero full-scale clipped samples.
+   - Scrubbed all master metadata tags via `-map_metadata -1`.
+   - Encoded with `libmp3lame` CBR 128 kbps, 44.1 kHz stereo, automatically upmixing mono inputs.
+
+3. **Placeholder Watermark Asset**:
+   - Synthesized `assets/watermark/tag.wav` (2.0 seconds, WAV PCM 16-bit, 44.1 kHz stereo, ~353 KB) using FFmpeg tone generation with fades. Passes `tools/check-audio.sh` allowlist.
+
+4. **Integration Testing & CI**:
+   - Implemented automated Vitest suite `test/tools/preview-generator.test.ts` testing 65 s sine conversion, watermark positioning on 65 s silent master via `silencedetect`, short master coverage, peak limiter verification, security rejections, and test isolation.
+   - Added `Ensure FFmpeg` step in `.github/workflows/ci.yml` `checks` job.
+
 ---
 
 ## 2026-09-23 — Task 002: Prisma Schema and Database Seed (PR #8)

@@ -112,6 +112,36 @@ The project manages database schemas and migrations via Prisma ORM:
 - **Container Parity**:
   The production Dockerfile (`build/deploy/Dockerfile`) mirrors this layout by copying `src/db` before running `npm ci` and copying generated engines from `node_modules/.prisma` and schema definitions from `src/db` into the final standalone runner stage.
 
+## Audio Processing & Preview Generator
+
+### CLI Preview Generation Utility
+
+Uncompressed master audio files are converted into watermarked MP3 streaming previews via the CLI utility script:
+
+```bash
+# Ensure MASTERS_DIR points to an external directory outside the repository
+export MASTERS_DIR=/var/data/music-shop/masters
+
+# Generate watermarked preview MP3 at public/audio/previews/<slug>.mp3
+npm run tools:preview-gen -- <master-file> <slug> [--force]
+```
+
+- **Output Encoding**: CBR 128 kbps, 44.1 kHz stereo (`libmp3lame`). Mono masters are automatically upmixed to stereo.
+- **Audio Watermarking**: Mixes `assets/watermark/tag.wav` repeatedly every 25 seconds throughout the track, starting at 10 seconds. Tracks shorter than 25 seconds receive at least one centered watermark tag.
+- **Volume & Limiting**: The music level is fully preserved (`normalize=0`), the watermark is attenuated by -12 dB, and an audio peak limiter (`alimiter=limit=0.891:level=disabled`) guarantees output peaks never exceed -1 dBFS, preventing digital clipping.
+- **Metadata Scrubbing**: Master file metadata tags are scrubbed via `-map_metadata -1`.
+- **Atomic File Writing**: Previews are written to temporary files and atomically renamed, ensuring partial MP3s are never committed or left behind.
+
+### Generating Watermark Asset (`assets/watermark/tag.wav`)
+
+The Phase 1 placeholder watermark tone (2.0 seconds, WAV PCM 16-bit, 44.1 kHz stereo) is synthesized with FFmpeg:
+
+```bash
+ffmpeg -y -f lavfi -i "sine=frequency=880:sample_rate=44100:duration=2" -af "volume=8,afade=t=in:st=0:d=0.05,afade=t=out:st=1.5:d=0.5" -c:a pcm_s16le -ar 44100 -ac 2 assets/watermark/tag.wav
+```
+
+The website owner's recorded spoken brand voice tag replaces this file directly with zero application code changes.
+
 ## Live demo fallback
 
 If the primary cloud demo service (Render) is spinning up or unavailable during a review meeting, run the local fallback from the developer machine:
