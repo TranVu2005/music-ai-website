@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-23 (Task 010 agent runtime handover)
+> Last updated: 2026-09-23 (Task 004 in review)
 > Purpose: single handoff document for any new chat, reviewer or agent. Read this file and `CHANGELOG.md` first.
 > Update rule: every PR that changes a decision, a task status or an open item updates this file in the same PR.
 
@@ -72,7 +72,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | 002 Prisma schema (users, tracks, custom_requests) + seed | Backend | 1 | 001 | Done (PR #8) |
 | 005 UI design prototypes (Home, Catalog) | Frontend | 1 | brand name + style | Blocked on owner input |
 | 003 Preview generator (FFmpeg + watermark) | Backend | 2 | 001 | Done (PR #9) |
-| 004 Catalog API | Backend | 2 | 002 | Waiting |
+| 004 Catalog API | Backend | 2 | 002 | In review |
 | 007 Catalog UI + audio player | Frontend | 2 | 004, approved 005 | Waiting |
 | 006 Static pages (Home, About, Contact, Pricing) | Frontend | 3 | approved 005, rebases on 007 | Waiting |
 | 008 Request form (DB + email) | Backend + Frontend | 3 | 002 | Waiting |
@@ -111,3 +111,4 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 - Neon free-plan egress (5 GB) and resume latency: confirm on the official page during the pre-deploy checklist.
 - Phase 2: validate the 2 vCPU / 4 GB estimate with a load test; add `tracks.reserved_by_order_id` FK in the Phase 2 migration.
 - Stale remote branches (`docs/phase1-tasks`, `docs/task-amendments`, `docs/free-demo`, `docs/hosting-figures`) can be deleted.
+- Catalog search is accent-sensitive: known gap, required before Milestone 1, tracked as task 004b.
