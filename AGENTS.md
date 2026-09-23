@@ -36,8 +36,9 @@ This document outlines mandatory engineering principles for developers and AI co
 - After approval, implement on the task branch, run the required verification, and open a Pull Request. Only Vu merges.
 
 ## 7. Commands
-- Install dependencies: `npm ci`.
-- Verify: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`, `npm run check:audio`.
+- On a fresh clone, run in this required order: `npm ci` → `npm run prisma:generate` → `npm run lint` → `npm run typecheck` → `npm test` → `npm run build`.
+- `npm run typecheck` fails before Prisma Client is generated because its generated client types are unavailable.
+- Additional verification: `npm run check:audio`.
 - Prisma and database: `npm run prisma:generate`, `npm run db:migrate:deploy`, `npm run db:seed`.
 - Database commands and integration tests require a running local PostgreSQL database with `DATABASE_URL` and `DIRECT_URL` set as in `.env.example` (local default: `127.0.0.1:5432/music_shop_db`).
 

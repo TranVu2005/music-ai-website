@@ -8,6 +8,7 @@
 
 - Moved the canonical repository skills into `.agents/skills/` for Codex discovery; `CLAUDE.md` points Claude Code to the same skills on demand.
 - Added plan approval, verification evidence, command, and role rules to `AGENTS.md`; updated the task template and recorded the handover in `docs/status.md`.
+- Updated `eslint.config.mjs` and `vitest.config.ts` to ignore the relocated `.agents/` skills directory.
 - Marked `GEMINI.md` deprecated while retaining the Gemini settings for rollback.
 
 ---

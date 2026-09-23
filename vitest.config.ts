@@ -5,7 +5,7 @@ export default defineConfig({
     fileParallelism: false,
     exclude: [
       ...configDefaults.exclude,
-      ".agent/**",
+      ".agents/**",
       ".claude/**",
       ".gemini/**",
       ".next/**",

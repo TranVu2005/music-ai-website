@@ -4,7 +4,7 @@ const eslintConfig = [
   ...nextVitals,
   {
     ignores: [
-      ".agent/**",
+      ".agents/**",
       ".claude/**",
       ".gemini/**",
       ".next/**",

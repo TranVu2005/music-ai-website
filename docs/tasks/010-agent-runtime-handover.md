@@ -17,7 +17,7 @@
   - [Task Template](_template.md)
 
 ## 3. Scope
-- Allowed modifications: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `docs/status.md`, `docs/tasks/_template.md`, this task file, `CHANGELOG.md`, and the canonical skills move into `.agents/skills/`.
+- Allowed modifications: `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `docs/status.md`, `docs/tasks/_template.md`, this task file, `CHANGELOG.md`, `eslint.config.mjs`, `vitest.config.ts`, and the canonical skills move into `.agents/skills/`.
 - `.gemini/settings.json` stays unchanged for rollback; only `GEMINI.md` receives the deprecation note.
 - Explicitly out of scope: `src/`, `test/`, `tools/`, `build/`, `.github/`, `package.json`, `package-lock.json`, Prisma files, symlinks, and `.claude/skills/`.
 
