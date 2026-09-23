@@ -404,6 +404,37 @@ describeDb("Catalog REST API Integration Tests", () => {
       expect(dataPercentMatch.items[0].slug).toBe("test-004-literal-percent");
     });
 
+    it("matches literal backslashes without treating them as pattern escapes", async () => {
+      const backslashQuery = new URLSearchParams({ q: "\\" });
+      const backslashUrl = `http://localhost:3000/api/tracks?${backslashQuery.toString()}`;
+      const before = await getTracks(new Request(backslashUrl));
+      expect((await before.json()).items).toEqual([]);
+
+      await prisma.track.create({
+        data: {
+          slug: "test-004-literal-backslash",
+          title: "Track with C:\\music path",
+          searchText: buildTrackSearchText("Track with C:\\music path", null),
+          genre: "Lo-fi Chill",
+          mood: "Relaxing",
+          durationSeconds: 100,
+          previewFileUrl: "/audio/previews/test.mp3",
+          status: TrackStatus.published,
+        },
+      });
+
+      const match = await getTracks(new Request(backslashUrl));
+      const matchData = await match.json();
+      expect(matchData.items).toHaveLength(1);
+      expect(matchData.items[0].slug).toBe("test-004-literal-backslash");
+
+      const pathQuery = new URLSearchParams({ q: "path\\\\dir" });
+      const noMatch = await getTracks(
+        new Request(`http://localhost:3000/api/tracks?${pathQuery.toString()}`)
+      );
+      expect((await noMatch.json()).items).toEqual([]);
+    });
+
     it("filters by genre and mood", async () => {
       const reqGenre = new Request("http://localhost:3000/api/tracks?genre=Lo-fi%20Chill");
       const resGenre = await getTracks(reqGenre);
