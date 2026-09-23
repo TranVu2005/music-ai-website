@@ -398,7 +398,7 @@ No background server (`next dev` or `next start`) is required during test runs.
 
 ## 6. Deviations & Out of Scope
 
-- **Vietnamese Accent-Insensitive Search**: Per Constraint 8, accent-insensitive search (`"ha noi"` vs `"Hà Nội"`) is NOT implemented in Task 004. Added to `docs/status.md` §7 as a candidate task (`"Catalog search is accent-sensitive; candidate task: Postgres unaccent."`).
+- **Vietnamese Accent-Insensitive Search**: Per Constraint 8, accent-insensitive search (`"ha noi"` vs `"Hà Nội"`) is NOT implemented in Task 004. This is a known gap, required before Milestone 1, tracked as task 004b (`docs/tasks/004b-accent-insensitive-search.md`). Reflected in `docs/status.md` §7.
 - **BPM Filtering**: Per Constraint 3 and architecture specs, BPM is display-only reference metadata and is never filterable.
 - **Admin / Modification Endpoints**: Creating, editing, or deleting tracks is deferred to Phase 2 Admin Panel.
 - **Checkout & Licensing**: Cart and orders endpoints are deferred to Phase 2.

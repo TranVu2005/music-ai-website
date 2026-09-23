@@ -111,4 +111,4 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 - Neon free-plan egress (5 GB) and resume latency: confirm on the official page during the pre-deploy checklist.
 - Phase 2: validate the 2 vCPU / 4 GB estimate with a load test; add `tracks.reserved_by_order_id` FK in the Phase 2 migration.
 - Stale remote branches (`docs/phase1-tasks`, `docs/task-amendments`, `docs/free-demo`, `docs/hosting-figures`) can be deleted.
-- Catalog search is accent-sensitive; candidate task: Postgres unaccent.
+- Catalog search is accent-sensitive: known gap, required before Milestone 1, tracked as task 004b.
