@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
+const MAX_PAGE = 10000;
 
 export async function GET(request: Request): Promise<Response> {
   try {
@@ -32,6 +33,13 @@ export async function GET(request: Request): Promise<Response> {
         return createErrorResponse(
           "BAD_REQUEST",
           "Invalid 'page' parameter: must be a positive integer",
+          400
+        );
+      }
+      if (parsedPage > MAX_PAGE || rawPage.length > 5) {
+        return createErrorResponse(
+          "BAD_REQUEST",
+          `Invalid 'page' parameter: must be <= ${MAX_PAGE}`,
           400
         );
       }

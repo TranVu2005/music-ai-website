@@ -1,6 +1,6 @@
 # Task 004: Catalog REST API Handlers Implementation Plan
 
-> Status: Proposed on 2026-09-23 on branch `feat/task-004-catalog-api`
+> Status: Approved with changes on 2026-09-23 by Lead review.
 
 ## 1. Files
 
@@ -38,7 +38,7 @@ Enforces runtime-only execution so `next build` does not attempt static prerende
 
 | Parameter | Type | Default | Constraints | Behavior on Invalid Input |
 |---|---|---|---|---|
-| `page` | integer | `1` | `>= 1` | Non-integer (e.g. `page=abc`, `page=1.5`) or `<= 0` (e.g. `page=0`, `page=-5`) returns **HTTP 400 Bad Request** (`{"error":{"code":"BAD_REQUEST","message":"Invalid 'page' parameter: must be a positive integer"}}`).<br>If `page > totalPages` (valid integer but beyond item count), returns **HTTP 200 OK** with `items: []`, `total: N`, `page: P`, `limit: L`, `totalPages: T`. |
+| `page` | integer | `1` | `1 <= page <= 10000` | Non-integer (e.g. `page=abc`, `page=1.5`), `<= 0` (e.g. `page=0`, `page=-5`), or `> MAX_PAGE` (`10000`, e.g. `page=10001`, `page=99999999999`) returns **HTTP 400 Bad Request** (`{"error":{"code":"BAD_REQUEST","message":"Invalid 'page' parameter: must be <= 10000"}}`). Prevents Int32 overflow on Prisma `skip`.<br>If `page > totalPages` (valid integer `<= 10000` but beyond item count), returns **HTTP 200 OK** with `items: []`, `total: N`, `page: P`, `limit: L`, `totalPages: T`. |
 | `limit` | integer | `10` | `1 <= limit <= 50` | Non-integer (e.g. `limit=abc`) or `<= 0` (e.g. `limit=0`, `limit=-10`) returns **HTTP 400 Bad Request** (`{"error":{"code":"BAD_REQUEST","message":"Invalid 'limit' parameter: must be a positive integer"}}`).<br>`limit > 50` (e.g. `limit=1000`) is **clamped to 50** (`limit = Math.min(parsedLimit, 50)`), returning **HTTP 200 OK** with at most 50 items and `limit: 50` in the pagination envelope. |
 | `q` | string | `""` | trimmed string | Trimmed string (`q.trim()`). If empty after trimming or omitted, **no keyword filter** is applied.<br>If non-empty, searches case-insensitively across both `title` and `description` via `contains` with `mode: 'insensitive'`.<br>SQL wildcards (`%`, `_`) and escape characters (`\`) are escaped (`replace(/([%_\\])/g, "\\$1")`) before passing to Prisma so `q=%` or `q=_` searches literally and does not match all records.<br>Per Constraint 8, Vietnamese search is accent-sensitive (`"ha noi"` does not match `"Hà Nội"`). |
 | `genre` | string | `""` | trimmed string | Exact string match against `tracks.genre`. If empty or omitted, ignored.<br>If an unknown genre is supplied (e.g. `genre=NonExistentGenre`), returns **HTTP 200 OK** with empty result (`items: []`, `total: 0`, `page: 1`, `totalPages: 0`), NOT 400. |
@@ -364,6 +364,7 @@ No background server (`next dev` or `next start`) is required during test runs.
    - Ordering check: returns items ordered by `createdAt desc, id asc`.
    - Clamping `limit > 50` (`limit=1000`): returns HTTP 200 with at most 50 items and `limit: 50`.
    - Invalid `page` (`page=abc`, `page=0`, `page=-1`): returns HTTP 400 Bad Request.
+   - Page overflow beyond `MAX_PAGE` (`page=10001`, `page=99999999999`): returns HTTP 400 Bad Request (prevents Prisma Int32 skip overflow).
    - Invalid `limit` (`limit=abc`, `limit=0`, `limit=-5`): returns HTTP 400 Bad Request.
    - Page out of bounds (`page=999`): returns HTTP 200 with `items: []`, `total: 5`, `totalPages: 1`.
 

@@ -56,6 +56,23 @@ describe("Catalog API - Unit & Serialization Tests", () => {
       },
     });
   });
+
+  it("rejects page exceeding MAX_PAGE (10000) with 400 BAD_REQUEST without hitting DB", async () => {
+    const overflowPages = ["10001", "99999999999", "1000000000000000000000"];
+    for (const p of overflowPages) {
+      const req = new Request(`http://localhost:3000/api/tracks?page=${p}`);
+      const res = await getTracks(req);
+
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data).toEqual({
+        error: {
+          code: "BAD_REQUEST",
+          message: "Invalid 'page' parameter: must be <= 10000",
+        },
+      });
+    }
+  });
 });
 
 // DB Test Guard: skip locally if DATABASE_URL is not set, hard-fail in CI
@@ -223,6 +240,23 @@ describeDb("Catalog REST API Integration Tests", () => {
       expect(data.total).toBe(5);
       expect(data.page).toBe(999);
       expect(data.totalPages).toBe(1);
+    });
+
+    it("rejects page > MAX_PAGE (10000) with HTTP 400 (preventing Int32 overflow)", async () => {
+      const overflowPages = ["10001", "99999999999"];
+      for (const p of overflowPages) {
+        const req = new Request(`http://localhost:3000/api/tracks?page=${p}`);
+        const res = await getTracks(req);
+
+        expect(res.status).toBe(400);
+        const data = await res.json();
+        expect(data).toEqual({
+          error: {
+            code: "BAD_REQUEST",
+            message: "Invalid 'page' parameter: must be <= 10000",
+          },
+        });
+      }
     });
   });
 
