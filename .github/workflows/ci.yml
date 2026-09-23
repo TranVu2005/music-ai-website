@@ -86,6 +86,9 @@ jobs:
       - name: Build Docker image
         run: docker build -f build/deploy/Dockerfile -t music-shop:ci .
 
+      - name: Verify FFmpeg in runner image
+        run: docker run --rm --entrypoint sh music-shop:ci -c "ffmpeg -version | head -1 && ffprobe -version | head -1"
+
       - name: Run Docker container
         run: docker run -d -p 3000:3000 --name music-shop-app music-shop:ci
 
