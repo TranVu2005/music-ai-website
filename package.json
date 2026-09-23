@@ -14,6 +14,7 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "check:audio": "sh tools/check-audio.sh",
+    "tools:preview-gen": "tsx tools/generate-preview.ts",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "prisma": {

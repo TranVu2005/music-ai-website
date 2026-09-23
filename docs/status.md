@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-23 (PR #8)
+> Last updated: 2026-09-23 (PR #9)
 > Purpose: single handoff document for any new chat, reviewer or agent. Read this file and `CHANGELOG.md` first.
 > Update rule: every PR that changes a decision, a task status or an open item updates this file in the same PR.
 
@@ -67,9 +67,9 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | Task | Owner | Week | Depends on | Status |
 |---|---|---|---|---|
 | 001 Project setup, CI, audio guard | DevOps | 1 | - | Done (PR #7) |
-| 002 Prisma schema (users, tracks, custom_requests) + seed | Backend | 1 | 001 | In review (PR #8) |
+| 002 Prisma schema (users, tracks, custom_requests) + seed | Backend | 1 | 001 | Done (PR #8) |
 | 005 UI design prototypes (Home, Catalog) | Frontend | 1 | brand name + style | Blocked on owner input |
-| 003 Preview generator (FFmpeg + watermark) | Backend | 2 | 001 | Waiting |
+| 003 Preview generator (FFmpeg + watermark) | Backend | 2 | 001 | In review (PR #9) |
 | 004 Catalog API | Backend | 2 | 002 | Waiting |
 | 007 Catalog UI + audio player | Frontend | 2 | 004, approved 005 | Waiting |
 | 006 Static pages (Home, About, Contact, Pricing) | Frontend | 3 | approved 005, rebases on 007 | Waiting |
@@ -103,6 +103,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 - Raw SQL UPDATEs (`$queryRaw` locking paths, Phase 2) must set `updated_at = now()` explicitly; `@updatedAt` is client-side only.
 - Seed must refuse to run when NODE_ENV=production (Phase 2 hardening).
 - Placeholder previews are ~5 s silent clips; real durationSeconds come from Task 003.
+- Preview generator runs via tsx (devDependency) and is not runnable in the runner image; Phase 2 upload processing needs a compiled tool or worker.
 - CI actions versions: actions/checkout@v4 and actions/setup-node@v4 run on deprecated Node 20 runner; bump to v5 and pin runs-on: ubuntu-24.04 before ubuntu-latest moves to Ubuntu 26 on 2026-10-19.
 - npm audit: 3 high advisories from deepmerge-ts via prisma -> @prisma/config (dev dependency only, not in the runtime image); re-check when upgrading to Prisma 7.
 - Neon free-plan egress (5 GB) and resume latency: confirm on the official page during the pre-deploy checklist.

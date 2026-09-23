@@ -41,6 +41,7 @@ uploads/
 !assets/watermark/**
 !public/audio/previews/
 !public/audio/previews/**
+public/audio/previews/.tmp-*
 public/masters/
 
 # IDE & OS files
