@@ -1,11 +1,13 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+  extensions = [pg_trgm]
 }
 
 enum Role {
@@ -59,6 +61,7 @@ model Track {
   title           String      @db.VarChar
   slug            String      @unique @db.VarChar
   description     String?     @db.Text
+  searchText      String      @map("search_text") @db.Text
   genre           String      @db.VarChar
   mood            String      @db.VarChar
   bpm             Int?
@@ -75,6 +78,7 @@ model Track {
   @@index([genre])
   @@index([mood])
   @@index([createdAt])
+  @@index([searchText(ops: raw("gin_trgm_ops"))], type: Gin)
   @@map("tracks")
 }
 

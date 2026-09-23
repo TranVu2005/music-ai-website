@@ -5,6 +5,7 @@ import {
   sanitizeTrack,
   createErrorResponse,
 } from "../../../lib/api/serialization";
+import { normalizeSearch } from "../../../lib/search/normalize";
 
 export const dynamic = "force-dynamic";
 
@@ -73,23 +74,10 @@ export async function GET(request: Request): Promise<Response> {
 
     if (searchParams.has("q")) {
       const rawQ = searchParams.get("q")!;
-      const trimmedQ = rawQ.trim();
-      if (trimmedQ.length > 0) {
-        const escapedQ = trimmedQ.replace(/([%_\\])/g, "\\$1");
-        where.OR = [
-          {
-            title: {
-              contains: escapedQ,
-              mode: "insensitive",
-            },
-          },
-          {
-            description: {
-              contains: escapedQ,
-              mode: "insensitive",
-            },
-          },
-        ];
+      const normalizedQ = normalizeSearch(rawQ);
+      if (normalizedQ.length > 0) {
+        const escapedQ = normalizedQ.replace(/([%_\\])/g, "\\$1");
+        where.searchText = { contains: escapedQ };
       }
     }
 
