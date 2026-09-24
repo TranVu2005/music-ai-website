@@ -157,7 +157,7 @@ describeDb("Database Schema & Migration DDL Verification", () => {
     expect(trackSlugIndex).toBeDefined();
   });
 
-  it("contains exactly the 7 secondary indexes across the migration", async () => {
+  it("contains exactly the 8 secondary indexes across the migration", async () => {
     const secondaryIndexes = await prisma.$queryRawUnsafe<
       Array<{ tablename: string; indexname: string }>
     >(
@@ -176,10 +176,38 @@ describeDb("Database Schema & Migration DDL Verification", () => {
       { tablename: "tracks", indexname: "tracks_created_at_idx" },
       { tablename: "tracks", indexname: "tracks_genre_idx" },
       { tablename: "tracks", indexname: "tracks_mood_idx" },
+      { tablename: "tracks", indexname: "tracks_search_text_idx" },
       { tablename: "tracks", indexname: "tracks_status_idx" },
     ];
 
-    expect(secondaryIndexes).toHaveLength(7);
+    expect(secondaryIndexes).toHaveLength(8);
     expect(secondaryIndexes).toEqual(expectedIndexes);
+  });
+
+  it("declares pg_trgm, a GIN trigram index, and a required search column without a default", async () => {
+    const extensions = await prisma.$queryRawUnsafe<Array<{ extname: string }>>(
+      `SELECT extname FROM pg_extension WHERE extname = 'pg_trgm';`
+    );
+    expect(extensions).toEqual([{ extname: "pg_trgm" }]);
+
+    const indexes = await prisma.$queryRawUnsafe<Array<{ indexdef: string }>>(
+      `SELECT indexdef FROM pg_indexes
+       WHERE schemaname = 'public' AND tablename = 'tracks'
+         AND indexname = 'tracks_search_text_idx';`
+    );
+    expect(indexes).toHaveLength(1);
+    expect(indexes[0].indexdef).toContain("USING gin");
+    expect(indexes[0].indexdef).toContain("search_text gin_trgm_ops");
+
+    const columns = await prisma.$queryRawUnsafe<
+      Array<{ is_nullable: string; column_default: string | null }>
+    >(
+      `SELECT is_nullable, column_default FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'tracks'
+         AND column_name = 'search_text';`
+    );
+    expect(columns).toHaveLength(1);
+    expect(columns[0].is_nullable).toBe("NO");
+    expect(columns[0].column_default).toBeNull();
   });
 });

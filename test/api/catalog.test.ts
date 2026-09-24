@@ -8,6 +8,7 @@ import {
   createErrorResponse,
   FORBIDDEN_KEYS,
 } from "../../src/lib/api/serialization";
+import { buildTrackSearchText } from "../../src/lib/search/normalize";
 
 // Unit tests for serialization and sanitization logic (runs without database)
 describe("Catalog API - Unit & Serialization Tests", () => {
@@ -33,6 +34,8 @@ describe("Catalog API - Unit & Serialization Tests", () => {
       reserved_until: new Date(),
       reservedByOrderId: "order-123",
       reserved_by_order_id: "order-123",
+      searchText: "internal search text",
+      search_text: "internal search text",
     };
 
     const sanitized = sanitizeTrack(rawTrack);
@@ -268,6 +271,7 @@ describeDb("Catalog REST API Integration Tests", () => {
           {
             slug: "test-004-draft",
             title: "Draft Track",
+            searchText: buildTrackSearchText("Draft Track", null),
             genre: "Test Genre",
             mood: "Test Mood",
             durationSeconds: 120,
@@ -277,6 +281,7 @@ describeDb("Catalog REST API Integration Tests", () => {
           {
             slug: "test-004-archived",
             title: "Archived Track",
+            searchText: buildTrackSearchText("Archived Track", null),
             genre: "Test Genre",
             mood: "Test Mood",
             durationSeconds: 120,
@@ -286,6 +291,7 @@ describeDb("Catalog REST API Integration Tests", () => {
           {
             slug: "test-004-reserved",
             title: "Reserved Track",
+            searchText: buildTrackSearchText("Reserved Track", null),
             genre: "Test Genre",
             mood: "Test Mood",
             durationSeconds: 120,
@@ -295,6 +301,7 @@ describeDb("Catalog REST API Integration Tests", () => {
           {
             slug: "test-004-sold-exclusive",
             title: "Sold Exclusive Track",
+            searchText: buildTrackSearchText("Sold Exclusive Track", null),
             genre: "Test Genre",
             mood: "Test Mood",
             durationSeconds: 120,
@@ -316,8 +323,7 @@ describeDb("Catalog REST API Integration Tests", () => {
       expect(slugs).not.toContain("test-004-sold-exclusive");
     });
 
-    // Known gap: accent-insensitive search — tracked in task 004b. Remove .fails when 004b lands.
-    it.fails("searches q case-insensitively across title and description", async () => {
+    it("searches q without accents or case across title and description", async () => {
       // Case-insensitive title match
       const req1 = new Request("http://localhost:3000/api/tracks?q=sai%20gon");
       const res1 = await getTracks(req1);
@@ -337,6 +343,19 @@ describeDb("Catalog REST API Integration Tests", () => {
       const data3 = await res3.json();
       expect(data3.items).toHaveLength(1);
       expect(data3.items[0].slug).toBe("khoang-lang-tay-nguyen");
+
+      for (const q of ["dem dong", "DEM DONG", "Đêm", "dem"]) {
+        const req = new Request(`http://localhost:3000/api/tracks?q=${encodeURIComponent(q)}`);
+        const res = await getTracks(req);
+        const data = await res.json();
+        expect(data.items).toHaveLength(1);
+        expect(data.items[0].slug).toBe("dem-dong-ha-noi");
+      }
+
+      const noMatch = await getTracks(new Request("http://localhost:3000/api/tracks?q=xyz-no-match"));
+      const noMatchData = await noMatch.json();
+      expect(noMatchData.items).toEqual([]);
+      expect(noMatchData.total).toBe(0);
     });
 
     it("treats empty or whitespace q as no filter", async () => {
@@ -344,6 +363,9 @@ describeDb("Catalog REST API Integration Tests", () => {
       const res = await getTracks(req);
       const data = await res.json();
       expect(data.total).toBe(5);
+
+      const marksOnly = await getTracks(new Request("http://localhost:3000/api/tracks?q=%CC%81"));
+      expect((await marksOnly.json()).total).toBe(5);
     });
 
     it("escapes SQL wildcards (% and _) so they do not match everything", async () => {
@@ -366,6 +388,7 @@ describeDb("Catalog REST API Integration Tests", () => {
         data: {
           slug: "test-004-literal-percent",
           title: "Track with 100% Volume",
+          searchText: buildTrackSearchText("Track with 100% Volume", null),
           genre: "Lo-fi Chill",
           mood: "Relaxing",
           durationSeconds: 100,
@@ -379,6 +402,37 @@ describeDb("Catalog REST API Integration Tests", () => {
       const dataPercentMatch = await resPercentMatch.json();
       expect(dataPercentMatch.items).toHaveLength(1);
       expect(dataPercentMatch.items[0].slug).toBe("test-004-literal-percent");
+    });
+
+    it("matches literal backslashes without treating them as pattern escapes", async () => {
+      const backslashQuery = new URLSearchParams({ q: "\\" });
+      const backslashUrl = `http://localhost:3000/api/tracks?${backslashQuery.toString()}`;
+      const before = await getTracks(new Request(backslashUrl));
+      expect((await before.json()).items).toEqual([]);
+
+      await prisma.track.create({
+        data: {
+          slug: "test-004-literal-backslash",
+          title: "Track with C:\\music path",
+          searchText: buildTrackSearchText("Track with C:\\music path", null),
+          genre: "Lo-fi Chill",
+          mood: "Relaxing",
+          durationSeconds: 100,
+          previewFileUrl: "/audio/previews/test.mp3",
+          status: TrackStatus.published,
+        },
+      });
+
+      const match = await getTracks(new Request(backslashUrl));
+      const matchData = await match.json();
+      expect(matchData.items).toHaveLength(1);
+      expect(matchData.items[0].slug).toBe("test-004-literal-backslash");
+
+      const pathQuery = new URLSearchParams({ q: "path\\\\dir" });
+      const noMatch = await getTracks(
+        new Request(`http://localhost:3000/api/tracks?${pathQuery.toString()}`)
+      );
+      expect((await noMatch.json()).items).toEqual([]);
     });
 
     it("filters by genre and mood", async () => {
@@ -457,6 +511,7 @@ describeDb("Catalog REST API Integration Tests", () => {
         data: {
           slug: "test-004-hidden-draft",
           title: "Hidden Draft",
+          searchText: buildTrackSearchText("Hidden Draft", null),
           genre: "Ambient",
           mood: "Dark",
           durationSeconds: 150,
@@ -509,6 +564,7 @@ describeDb("Catalog REST API Integration Tests", () => {
         data: {
           slug: "test-004-unpublished-genre",
           title: "Unpublished Genre Track",
+          searchText: buildTrackSearchText("Unpublished Genre Track", null),
           genre: "Zombie Metal",
           mood: "Terrifying",
           durationSeconds: 200,
@@ -538,6 +594,8 @@ describeDb("Catalog REST API Integration Tests", () => {
         expect(item).not.toHaveProperty("status");
         expect(item).not.toHaveProperty("reservedUntil");
         expect(item).not.toHaveProperty("reserved_until");
+        expect(item).not.toHaveProperty("searchText");
+        expect(item).not.toHaveProperty("search_text");
       }
     });
 
@@ -554,6 +612,17 @@ describeDb("Catalog REST API Integration Tests", () => {
       expect(data).not.toHaveProperty("status");
       expect(data).not.toHaveProperty("reservedUntil");
       expect(data).not.toHaveProperty("reserved_until");
+      expect(data).not.toHaveProperty("searchText");
+      expect(data).not.toHaveProperty("search_text");
+    });
+
+    it("never includes search text in error payloads", async () => {
+      const badRequest = await getTracks(new Request("http://localhost:3000/api/tracks?page=0"));
+      const notFound = await getTrackBySlug(new Request("http://localhost:3000/api/tracks/absent"), {
+        params: Promise.resolve({ slug: "absent" }),
+      });
+      assertNoForbiddenKeys(await badRequest.json());
+      assertNoForbiddenKeys(await notFound.json());
     });
   });
 });

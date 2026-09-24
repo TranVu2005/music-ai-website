@@ -4,6 +4,13 @@
 > **Source of Truth**: `docs/project-plan.md` (directly extracted and systematized from the client implementation plan *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version") - 2026-09-20).  
 > **Project Scope**: Strictly frozen at exactly 13 features allocated across 3 phases in a 5 / 4 / 4 ratio (Phase 1: 5 features, Phase 2: 4 features, Phase 3: 4 features).
 
+## 2026-09-23 — Task 004b: Accent-Insensitive Catalog Search
+
+- Added shared Vietnamese and eth-aware normalization for catalog queries, seed writes, and search-text backfill.
+- Added a required internal `tracks.search_text` column and schema-declared `pg_trgm` GIN index; the migration removes its temporary backfill default.
+- Added an idempotent `db:backfill:search` command that recomputes every track and updates stale values only.
+- Extended catalog, normalization, backfill, and migration tests, including response-key protection and index/default checks.
+
 ## 2026-09-23 — Task 010: Agent Runtime Handover
 
 - Moved the canonical repository skills into `.agents/skills/` for Codex discovery; `CLAUDE.md` points Claude Code to the same skills on demand.

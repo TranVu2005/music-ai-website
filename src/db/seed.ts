@@ -1,4 +1,5 @@
 import { PrismaClient, TrackStatus } from "@prisma/client";
+import { buildTrackSearchText } from "../lib/search/normalize";
 
 const prisma = new PrismaClient();
 
@@ -72,11 +73,13 @@ export const sampleTracks = [
 
 export async function seed() {
   for (const track of sampleTracks) {
+    const searchText = buildTrackSearchText(track.title, track.description);
     await prisma.track.upsert({
       where: { slug: track.slug },
       update: {
         title: track.title,
         description: track.description,
+        searchText,
         genre: track.genre,
         mood: track.mood,
         bpm: track.bpm,
@@ -86,7 +89,7 @@ export async function seed() {
         coverImageUrl: track.coverImageUrl,
         status: track.status,
       },
-      create: track,
+      create: { ...track, searchText },
     });
   }
 }

@@ -13,6 +13,7 @@
     "prisma:generate": "prisma generate",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
+    "db:backfill:search": "tsx tools/backfill-search-text.ts",
     "check:audio": "sh tools/check-audio.sh",
     "tools:preview-gen": "tsx tools/generate-preview.ts",
     "prepare": "git config core.hooksPath .githooks || true"

@@ -25,6 +25,7 @@ Manages the public track catalog, display metadata, audio paths, and inventory s
 - `title` (VARCHAR, Not Null)
 - `slug` (VARCHAR, Unique, Not Null)
 - `description` (TEXT, Nullable)
+- `search_text` (TEXT, Not Null) - Internal normalized title and description; every track write path must use `buildTrackSearchText` from `src/lib/search/normalize.ts`.
 - `genre` (VARCHAR, Not Null) - Musical genre (used as a catalog filter)
 - `mood` (VARCHAR, Not Null) - Musical mood (used as a catalog filter)
 - `bpm` (INTEGER, Nullable) - Tempo in beats per minute (stored and displayed as reference metadata, **not** used as a filter)

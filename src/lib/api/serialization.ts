@@ -46,6 +46,8 @@ export const FORBIDDEN_KEYS = new Set([
   "reserved_until",
   "reservedByOrderId",
   "reserved_by_order_id",
+  "searchText",
+  "search_text",
 ]);
 
 export function sanitizeTrack<T extends Record<string, unknown>>(track: T): PublicTrack {
