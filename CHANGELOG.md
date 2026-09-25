@@ -1,5 +1,12 @@
 # Documentation Changelog (CHANGELOG)
 
+## 2026-09-25 — Task 008: Custom Music Request Form
+
+- Added the Vietnamese custom request page and shared client/server validation.
+- Added the rate-limited request API with streamed 16 KiB body limit, honeypot, database-first persistence, and resilient email notification.
+- Added email provider abstraction, trusted proxy configuration, and automated request tests.
+- Updated Task 004 and 004b status following merged PRs #12 and #13.
+
 > **Date**: 2026-09-21  
 > **Source of Truth**: `docs/project-plan.md` (directly extracted and systematized from the client implementation plan *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version") - 2026-09-20).  
 > **Project Scope**: Strictly frozen at exactly 13 features allocated across 3 phases in a 5 / 4 / 4 ratio (Phase 1: 5 features, Phase 2: 4 features, Phase 3: 4 features).
