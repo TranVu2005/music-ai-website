@@ -81,7 +81,10 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 
 ## 5. Next actions
 
-1. Assign Task 005 once the brand name and style direction are provided (or with placeholders).
+1. Complete the Task 008 fix round in PR #14 review.
+2. Assign Task 005 once the brand name and style direction are provided (or with placeholders).
+3. During Task 009, verify Render's `x-forwarded-for` chain from two different networks, set `TRUSTED_PROXY_HOPS` accordingly, and confirm the `unknown-client` warning never fires.
+4. In a separate PR before 2026-10-19, bump CI actions to v5 and pin `ubuntu-24.04`.
 
 ## 6. Open items
 

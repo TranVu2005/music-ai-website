@@ -14,7 +14,7 @@ export const vi = {
     references: "Liên kết tham khảo (không bắt buộc)",
     budget: "Ngân sách dự kiến, VND (không bắt buộc)",
     budgetHelp: "Có thể nhập 10000000 hoặc 10.000.000.",
-    website: "Trang web",
+    hp_7k2: "Để trống",
     submit: "Gửi yêu cầu",
     submitting: "Đang gửi…",
     success: "Yêu cầu đã được ghi nhận. Chúng tôi sẽ liên hệ sớm.",

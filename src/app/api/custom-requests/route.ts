@@ -62,7 +62,8 @@ export async function handleCustomRequest(request: Request, deps: CustomRequestD
     return failure(400, { form: "invalidJson" });
   }
 
-  if (body && typeof body === "object" && "website" in body && String(body.website ?? "").trim()) {
+  if (body && typeof body === "object" && "hp_7k2" in body && String(body.hp_7k2 ?? "").trim()) {
+    console.warn("[custom-request] honeypot hit", clientIp);
     return Response.json({ ok: true }, { status: 201 });
   }
 

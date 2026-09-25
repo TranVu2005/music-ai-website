@@ -18,7 +18,7 @@ export class ResendEmailProvider implements EmailProvider {
       from: this.from,
       to: this.to,
       replyTo: data.customerEmail,
-      subject: `Custom music request ${data.id}`,
+      subject: data.id,
       text: formatCustomRequestEmail(data),
     });
     if (result.error) throw new Error(result.error.name);

@@ -37,6 +37,8 @@ export function createRateLimiter(): RateLimiter {
   return new MemoryRateLimiter();
 }
 
+let warnedUnknownClient = false;
+
 export function getClientIp(request: Request, trustedProxyHops = 1): string {
   const forwarded = request.headers.get("x-forwarded-for");
   const hops = Number.isSafeInteger(trustedProxyHops) && trustedProxyHops > 0 ? trustedProxyHops : 1;
@@ -47,7 +49,10 @@ export function getClientIp(request: Request, trustedProxyHops = 1): string {
   }
   const realIp = request.headers.get("x-real-ip")?.trim();
   if (realIp && isIP(realIp)) return realIp;
-  console.warn("[custom-request] no trusted client IP; using shared fallback key");
+  if (!warnedUnknownClient) {
+    console.warn("[custom-request] no trusted client IP; using shared fallback key");
+    warnedUnknownClient = true;
+  }
   return "unknown-client";
 }
 

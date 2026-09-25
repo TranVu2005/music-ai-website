@@ -15,7 +15,7 @@ type FormValues = {
   targetDuration: string;
   referenceLinks: string;
   budgetEstimate: string;
-  website: string;
+  hp_7k2: string;
 };
 
 const initialValues: FormValues = {
@@ -27,10 +27,10 @@ const initialValues: FormValues = {
   targetDuration: "",
   referenceLinks: "",
   budgetEstimate: "",
-  website: "",
+  hp_7k2: "",
 };
 
-type Field = Exclude<keyof FormValues, "website">;
+type Field = Exclude<keyof FormValues, "hp_7k2">;
 
 function messageFor(key: string): string {
   const validation = copy.validation as Record<string, string>;
@@ -74,7 +74,7 @@ function useCustomRequestForm() {
         body: JSON.stringify({
           ...parsed.data,
           budgetEstimate: parsed.data.budgetEstimate === null ? null : Number(parsed.data.budgetEstimate),
-          website: values.website,
+          hp_7k2: values.hp_7k2,
         }),
       });
       if (response.ok) {
@@ -156,8 +156,8 @@ export default function CustomRequestForm() {
       ))}
 
       <div className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
-        <label htmlFor="website">{copy.website}</label>
-        <input id="website" name="website" tabIndex={-1} autoComplete="off" value={values.website} onChange={(event) => update("website", event.target.value)} />
+        <label htmlFor="hp_7k2">{copy.hp_7k2}</label>
+        <input id="hp_7k2" name="hp_7k2" tabIndex={-1} autoComplete="off" value={values.hp_7k2} onChange={(event) => update("hp_7k2", event.target.value)} />
       </div>
 
       {state === "success" && <p role="status" className="text-green-800">{copy.success}</p>}

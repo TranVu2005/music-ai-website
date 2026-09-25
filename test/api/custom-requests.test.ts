@@ -86,16 +86,19 @@ describe("rate limiting and proxy address", () => {
     expect(limiter.consume("a", 600000)).toBe(true);
   });
 
-  it("uses the trusted-hop entry, then x-real-ip, then a warned constant", () => {
+  it("uses the trusted-hop entry, then x-real-ip, then a once-warned constant", async () => {
+    vi.resetModules();
+    const { getClientIp: freshGetClientIp } = await import("../../src/lib/security/rate-limit");
     const request = new Request("http://localhost/api/custom-requests", { headers: { "x-forwarded-for": "203.0.113.1, 198.51.100.2, 192.0.2.3", "x-real-ip": "192.0.2.4" } });
-    expect(getClientIp(request, 1)).toBe("192.0.2.3");
-    expect(getClientIp(request, 2)).toBe("198.51.100.2");
-    expect(getClientIp(request, 4)).toBe("192.0.2.4");
+    expect(freshGetClientIp(request, 1)).toBe("192.0.2.3");
+    expect(freshGetClientIp(request, 2)).toBe("198.51.100.2");
+    expect(freshGetClientIp(request, 4)).toBe("192.0.2.4");
     const invalidForwarded = new Request("http://localhost/api/custom-requests", { headers: { "x-forwarded-for": "spoofed", "x-real-ip": "192.0.2.5" } });
-    expect(getClientIp(invalidForwarded, 1)).toBe("192.0.2.5");
+    expect(freshGetClientIp(invalidForwarded, 1)).toBe("192.0.2.5");
     const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(getClientIp(new Request("http://localhost/api/custom-requests"), 1)).toBe("unknown-client");
-    expect(warning).toHaveBeenCalled();
+    expect(freshGetClientIp(new Request("http://localhost/api/custom-requests"), 1)).toBe("unknown-client");
+    expect(freshGetClientIp(new Request("http://localhost/api/custom-requests"), 1)).toBe("unknown-client");
+    expect(warning).toHaveBeenCalledExactlyOnceWith("[custom-request] no trusted client IP; using shared fallback key");
     warning.mockRestore();
   });
 
@@ -136,7 +139,7 @@ function makeDeps() {
 describe("custom request handler", () => {
   it("saves before email and returns only ok", async () => {
     const { create, sendCustomRequestNotification, deps } = makeDeps();
-    const response = await handleCustomRequest(makeRequest({ ...valid, website: "" }), deps);
+    const response = await handleCustomRequest(makeRequest({ ...valid, hp_7k2: "" }), deps);
     expect(response.status).toBe(201);
     expect(await response.json()).toEqual({ ok: true });
     expect(create).toHaveBeenCalledOnce();
@@ -145,11 +148,33 @@ describe("custom request handler", () => {
 
   it("returns success for honeypot without persistence or email", async () => {
     const { create, sendCustomRequestNotification, deps } = makeDeps();
-    const response = await handleCustomRequest(makeRequest({ ...valid, website: "filled" }), deps);
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const response = await handleCustomRequest(makeRequest({ ...valid, hp_7k2: "filled" }), deps);
     expect(response.status).toBe(201);
     expect(await response.json()).toEqual({ ok: true });
     expect(create).not.toHaveBeenCalled();
     expect(sendCustomRequestNotification).not.toHaveBeenCalled();
+    expect(warning).toHaveBeenCalledExactlyOnceWith("[custom-request] honeypot hit", "192.0.2.1");
+    expect(JSON.stringify(warning.mock.calls)).not.toContain("customer@example.com");
+    expect(JSON.stringify(warning.mock.calls)).not.toContain("Nguyễn Văn A");
+    warning.mockRestore();
+  });
+
+  it("returns a redacted 500 and skips email when database insert fails", async () => {
+    const { create, sendCustomRequestNotification, deps } = makeDeps();
+    create.mockRejectedValueOnce(new Error("customer@example.com Nguyễn Văn A"));
+    const errorLog = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const response = await handleCustomRequest(makeRequest(valid), deps);
+      expect(response.status).toBe(500);
+      expect(await response.json()).toEqual({ ok: false, errors: { form: "serverError" } });
+      expect(sendCustomRequestNotification).not.toHaveBeenCalled();
+      expect(errorLog).toHaveBeenCalledOnce();
+      expect(JSON.stringify(errorLog.mock.calls)).not.toContain("customer@example.com");
+      expect(JSON.stringify(errorLog.mock.calls)).not.toContain("Nguyễn Văn A");
+    } finally {
+      errorLog.mockRestore();
+    }
   });
 
   it("enforces body byte limit even without Content-Length", async () => {
@@ -172,8 +197,10 @@ describe("custom request handler", () => {
 
   it("returns 429 for the sixth request from one IP", async () => {
     const { deps } = makeDeps();
-    for (let i = 0; i < 5; i++) await handleCustomRequest(makeRequest({ website: "bot" }), deps);
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+    for (let i = 0; i < 5; i++) await handleCustomRequest(makeRequest({ hp_7k2: "bot" }), deps);
     expect((await handleCustomRequest(makeRequest(valid), deps)).status).toBe(429);
+    warning.mockRestore();
   });
 
   it("keeps 201 when email throws or exceeds a short injected timeout", async () => {
@@ -251,7 +278,8 @@ describeDb("custom request PostgreSQL integration", () => {
 
   it("discards a filled honeypot without inserting a row", async () => {
     const sendCustomRequestNotification = vi.fn(async () => {});
-    const response = await handleCustomRequest(makeRequest({ ...valid, customerEmail: email, website: "bot" }), {
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const response = await handleCustomRequest(makeRequest({ ...valid, customerEmail: email, hp_7k2: "bot" }), {
       prisma,
       emailProvider: { sendCustomRequestNotification },
       rateLimiter: new MemoryRateLimiter(),
@@ -261,5 +289,8 @@ describeDb("custom request PostgreSQL integration", () => {
     expect(await response.json()).toEqual({ ok: true });
     expect(await prisma.customRequest.count({ where: { customerEmail: email } })).toBe(0);
     expect(sendCustomRequestNotification).not.toHaveBeenCalled();
+    expect(warning).toHaveBeenCalledExactlyOnceWith("[custom-request] honeypot hit", "192.0.2.1");
+    expect(JSON.stringify(warning.mock.calls)).not.toContain(email);
+    warning.mockRestore();
   });
 });
