@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-23 (Task 004 in review)
+> Last updated: 2026-09-25 (Task 008 in review)
 > Purpose: single handoff document for any new chat, reviewer or agent. Read this file and `CHANGELOG.md` first.
 > Update rule: every PR that changes a decision, a task status or an open item updates this file in the same PR.
 
@@ -62,7 +62,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | Legacy scaffold cleanup (Express/MinIO/PayOS remnants), Dockerfile, compose, `.env.example` | Done in docs PRs; verified by Task 001 |
 | Phase 1 task specs 001-009 | Done |
 | Task 010 agent runtime handover (Gemini to Codex + Claude Code) | Done (PR #11) |
-| Phase 1 implementation | Not started |
+| Phase 1 implementation | In progress (Tasks 001–004b done; Task 008 in review) |
 
 ### Phase 1 tasks (weeks 1-3)
 
@@ -72,16 +72,19 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | 002 Prisma schema (users, tracks, custom_requests) + seed | Backend | 1 | 001 | Done (PR #8) |
 | 005 UI design prototypes (Home, Catalog) | Frontend | 1 | brand name + style | Blocked on owner input |
 | 003 Preview generator (FFmpeg + watermark) | Backend | 2 | 001 | Done (PR #9) |
-| 004 Catalog API | Backend | 2 | 002 | In review |
-| 004b Accent-insensitive catalog search | Backend | 2 | 004 | In progress |
+| 004 Catalog API | Backend | 2 | 002 | Done (PR #12) |
+| 004b Accent-insensitive catalog search | Backend | 2 | 004 | Done (PR #13) |
 | 007 Catalog UI + audio player | Frontend | 2 | 004, approved 005 | Waiting |
 | 006 Static pages (Home, About, Contact, Pricing) | Frontend | 3 | approved 005, rebases on 007 | Waiting |
-| 008 Request form (DB + email) | Backend + Frontend | 3 | 002 | Waiting |
+| 008 Request form (DB + email) | Backend + Frontend | 3 | 002 | In review |
 | 009 Deploy demo + Milestone 1 acceptance | DevOps/QA | 3 | 001-008, owner approval | Waiting |
 
 ## 5. Next actions
 
-1. Assign Task 005 once the brand name and style direction are provided (or with placeholders).
+1. Complete the Task 008 fix round in PR #14 review.
+2. Assign Task 005 once the brand name and style direction are provided (or with placeholders).
+3. During Task 009, verify Render's `x-forwarded-for` chain from two different networks, set `TRUSTED_PROXY_HOPS` accordingly, and confirm the `unknown-client` warning never fires.
+4. In a separate PR before 2026-10-19, bump CI actions to v5 and pin `ubuntu-24.04`.
 
 ## 6. Open items
 

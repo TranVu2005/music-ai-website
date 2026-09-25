@@ -177,7 +177,7 @@ To prevent vendor lock-in and guarantee zero-downtime migration between environm
    - Any platform-specific capability must sit strictly behind an abstract TypeScript interface:
      - Email dispatch: `EmailProvider` (`ResendEmailProvider` in production, `ConsoleEmailProvider` in development/testing).
      - Payment processing: `PaymentProvider` (`VietQRPaymentProvider` generating EMVCo strings locally).
-     - Rate limiting: `RateLimiter` (`MemoryRateLimiter` for single-instance demo/VPS; expandable to shared store if multi-instance scaling is required).
+     - Rate limiting: `RateLimiter` (`MemoryRateLimiter` for single-instance demo/VPS; expandable to shared store if multi-instance scaling is required). The custom-request endpoint selects the client IP from `x-forwarded-for` using `TRUSTED_PROXY_HOPS` (default 1), then `x-real-ip`; these headers are trusted only behind the configured reverse proxy. Render's actual header behavior and hop count: **verify before use**.
 3. **Container Image Portability**:
    - The primary container deployment artifact is `build/deploy/Dockerfile`.
    - The multi-stage build creates a standalone Next.js server with bundled OpenSSL (for Prisma engine) and FFmpeg/ffprobe.
