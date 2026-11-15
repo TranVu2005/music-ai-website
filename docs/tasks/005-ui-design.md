@@ -12,6 +12,7 @@
 - [Architecture Overview](../architecture/overview.md)
 - [Project Plan](../project-plan.md)
 - [AGENTS.md](../../AGENTS.md)
+- [Owner mockup `design/reference/Design.pdf`](../../design/reference/Design.pdf): **visual source of truth** for Home and Catalog. Brand "Tomahu Music" is a PLACEHOLDER until the owner confirms; navigation: Kho nhạc, Bảng giá, Đặt nhạc riêng, Giới thiệu, Liên hệ; includes the 4-step custom process. Prices and contact details in prototypes are placeholders.
 
 ## 3. Scope
 - Components, directories, and files within task scope:
@@ -29,6 +30,7 @@
 - [ ] Persistent audio player bar styled with playback controls (play/pause, scrubber bar, volume, current track info).
 - [ ] Catalog track cards showcase title, artist/brand, genre, mood, duration, and BPM indicator.
 - [ ] All UI copy placeholders use natural Vietnamese phrasing (e.g., `"Nghe thử"` ("Preview"), `"Thể loại"` ("Genre"), `"Đặt làm nhạc theo yêu cầu"` ("Commission custom music")).
+- [ ] Prototypes follow `design/reference/Design.pdf` (layout, palette, navigation, 4-step custom process); deviations are listed in the PR.
 - [ ] Formal review and approval of the design prototypes by the store owner is documented and granted (acts as prerequisite for Tasks 006 and 007).
 
 ## 5. Required Tests

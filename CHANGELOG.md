@@ -4,6 +4,13 @@
 > **Source of Truth**: `docs/project-plan.md` (directly extracted and systematized from the client implementation plan *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version") - 2026-09-20).
 > **Project Scope**: Strictly frozen at exactly 13 features allocated across 3 phases in a 5 / 4 / 4 ratio (Phase 1: 5 features, Phase 2: 4 features, Phase 3: 4 features).
 
+## 2026-11-15 — MVP Demo Preparation (docs only)
+
+- `docs/status.md`: Task 008 marked Done (PR #14); Task 005 unblocked with placeholder brand "Tomahu Music" and style direction from the owner mockup; next actions reordered to 005, 007, 006, demo data, 009; placeholder-content decision recorded.
+- Added `design/reference/Design.pdf` (owner mockup, Home + Catalog) and referenced it from Task 005 as the visual source of truth.
+- Task 006 amended: `src/config/contact.ts` (placeholder contact details), `FloatingContact` widget, structured pricing page (license table, three custom packages with ranges, revisions, delivery, deliverables, add-ons, 4-step process, CTA) with a "Giá minh họa" badge, and matching tests.
+- No source code changed.
+
 ## 2026-09-25 — Task 008: Custom Music Request Form
 
 - Added the Vietnamese custom request page and shared client/server validation.
