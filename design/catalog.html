@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kho nhạc – Tomahu Music (mockup Danh mục)</title>
+<meta name="description" content="Mockup tĩnh trang Kho nhạc. Thương hiệu Tomahu Music là tên tạm; giá là giá trị minh họa.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="assets/tailwind-config.js"></script>
+<link rel="stylesheet" href="assets/design.css">
+</head>
+<body style="--player-h:88px">
+<a href="#noi-dung" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:bg-white focus:p-2">Bỏ qua điều hướng</a>
+
+<header class="sticky top-0 z-30 border-b border-line bg-cream/95 backdrop-blur">
+  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 lg:h-[68px] lg:px-8">
+    <a href="home.html" class="flex items-center gap-3">
+      <span class="grid h-9 w-9 place-items-center rounded-full bg-ink" aria-hidden="true"><span class="h-2.5 w-2.5 rounded-full bg-rust"></span></span>
+      <span class="font-display text-xl font-bold">Tomahu Music</span>
+    </a>
+    <nav aria-label="Điều hướng chính" class="hidden lg:block">
+      <ul class="flex gap-8 text-sm font-medium">
+        <li><a href="catalog.html" aria-current="page" class="text-rust">Kho nhạc</a></li>
+        <li><a href="#" class="hover:text-rust">Bảng giá</a></li>
+        <li><a href="home.html#sang-tac-rieng" class="hover:text-rust">Đặt nhạc riêng</a></li>
+        <li><a href="home.html#nghe-si" class="hover:text-rust">Giới thiệu</a></li>
+        <li><a href="home.html#lien-he" class="hover:text-rust">Liên hệ</a></li>
+      </ul>
+    </nav>
+    <div class="flex items-center gap-3">
+      <a href="home.html#sang-tac-rieng" class="hidden whitespace-nowrap rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white sm:inline-block">Đặt nhạc riêng</a>
+      <details class="relative lg:hidden">
+        <summary class="grid h-10 w-10 cursor-pointer list-none place-items-center" aria-label="Mở menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </summary>
+        <ul class="absolute right-0 mt-3 w-56 rounded-2xl border border-line bg-cream p-3 text-sm font-medium shadow-lg">
+          <li><a class="block rounded-lg px-3 py-2.5 text-rust hover:bg-cream2" href="catalog.html">Kho nhạc</a></li>
+          <li><a class="block rounded-lg px-3 py-2.5 hover:bg-cream2" href="#">Bảng giá</a></li>
+          <li><a class="block rounded-lg px-3 py-2.5 hover:bg-cream2" href="home.html#sang-tac-rieng">Đặt nhạc riêng</a></li>
+          <li><a class="block rounded-lg px-3 py-2.5 hover:bg-cream2" href="home.html#nghe-si">Giới thiệu</a></li>
+          <li><a class="block rounded-lg px-3 py-2.5 hover:bg-cream2" href="home.html#lien-he">Liên hệ</a></li>
+        </ul>
+      </details>
+    </div>
+  </div>
+</header>
+
+<main id="noi-dung" class="mx-auto max-w-7xl px-5 pb-40 pt-8 lg:px-8 lg:pt-14">
+  <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <h1 class="font-display text-5xl font-bold lg:text-6xl">Kho nhạc</h1>
+      <p class="mt-3 text-lg text-muted">Nghe thử từng bài, lọc theo thể loại và tâm trạng<span class="hidden lg:inline">, chọn giấy phép phù hợp</span>.</p>
+    </div>
+    <form role="search" class="w-full lg:w-[28rem]" onsubmit="return false">
+      <label for="q" class="mb-2 block text-sm font-semibold">Tìm bài nhạc</label>
+      <div class="flex items-center gap-3 rounded-full border border-line bg-[#faf7f0] px-5 py-3.5">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Tên bài, mô tả… (vd: dem dong, sài gòn)" class="w-full bg-transparent outline-none placeholder:text-muted">
+      </div>
+    </form>
+  </div>
+
+  <div class="mt-8 space-y-4 border-y border-line py-5">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
+      <h2 class="w-20 shrink-0 text-sm font-semibold">Thể loại</h2>
+      <ul class="noscroll -mx-5 flex gap-2 overflow-x-auto px-5 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 text-sm">
+        <li><a href="#" aria-current="true" class="block whitespace-nowrap rounded-full bg-ink px-5 py-2.5 font-medium text-white">Tất cả</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-line px-5 py-2.5 hover:border-ink">Lo-fi Chill</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-line px-5 py-2.5 hover:border-ink">Pop Acoustic</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-line px-5 py-2.5 hover:border-ink">Cinematic Ambient</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-line px-5 py-2.5 hover:border-ink">Future Bass</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-line px-5 py-2.5 hover:border-ink">Traditional Fusion</a></li>
+      </ul>
+    </div>
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
+      <h2 class="w-20 shrink-0 text-sm font-semibold">Tâm trạng</h2>
+      <ul class="noscroll -mx-5 flex gap-2 overflow-x-auto px-5 lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0 text-sm">
+        <li><a href="#" aria-current="true" class="block whitespace-nowrap rounded-full bg-rust px-5 py-2.5 font-medium text-white">Tất cả</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-dashed border-muted/50 px-5 py-2.5 hover:border-ink">Man mác</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-dashed border-muted/50 px-5 py-2.5 hover:border-ink">Tươi sáng</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-dashed border-muted/50 px-5 py-2.5 hover:border-ink">Bình yên</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-dashed border-muted/50 px-5 py-2.5 hover:border-ink">Sôi động</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-dashed border-muted/50 px-5 py-2.5 hover:border-ink">Thư thái</a></li>
+        <li><a href="#" class="block whitespace-nowrap rounded-full border border-dashed border-muted/50 px-5 py-2.5 hover:border-ink">Hồi hộp</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mt-6 flex items-center justify-between gap-4">
+    <p class="whitespace-nowrap text-sm text-muted" role="status"><strong class="text-ink">8</strong> bài phù hợp</p>
+    <div class="flex min-w-0 items-center gap-2 text-sm sm:gap-3">
+      <label for="sort" class="whitespace-nowrap text-muted">Sắp xếp</label>
+      <select id="sort" class="min-w-0 rounded-xl border border-line bg-[#faf7f0] px-3 py-2.5 sm:px-4">
+        <option>Mới nhất</option><option>Giá thấp đến cao</option><option>Giá cao đến thấp</option><option>Thời lượng</option>
+      </select>
+    </div>
+  </div>
+
+  <ul class="mt-6 grid gap-x-6 gap-y-0 md:gap-y-10 md:grid-cols-2 md:mt-8 lg:grid-cols-4">
+    <li class="group"><article class="flex items-center gap-4 border-b border-line py-4 md:block md:border-0 md:py-0">
+      <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg md:h-auto md:w-auto md:aspect-square md:rounded-xl"><img src="assets/artwork-lofi-dem-dong.svg" alt="Ảnh bìa bài Đêm Đông Hà Nội" class="h-full w-full object-cover" loading="lazy">
+        <span class="absolute left-4 top-4 hidden text-[.65rem] font-semibold uppercase tracking-[.14em] text-white md:block">Lo-fi Chill</span>
+        <button type="button" aria-label="Nghe thử Đêm Đông Hà Nội" class="absolute bottom-4 left-4 hidden h-12 w-12 place-items-center rounded-full bg-[#faf7f0] text-ink md:grid"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button></div>
+      <div class="min-w-0 flex-1 md:mt-4">
+        <h3 class="font-semibold leading-snug md:text-lg"><a href="#">Đêm Đông Hà Nội</a></h3>
+        <p class="text-sm text-muted">Tomahu Music <span class="md:hidden">· Lo-fi Chill</span></p>
+        <p class="text-sm text-muted md:hidden">Man mác · 2:25 · 78 BPM</p>
+        <p class="mt-2 hidden flex-wrap gap-2 text-xs md:flex"><span class="rounded-full bg-cream2 px-3 py-1">Lo-fi Chill</span><span class="rounded-full border border-line px-3 py-1">Man mác</span></p>
+        <div class="mt-3 hidden items-center justify-between border-t border-line pt-3 text-sm md:flex"><span class="text-muted">2:25 · 78 BPM</span><span class="font-semibold">Từ [GIÁ] <span class="ml-1 rounded bg-cream2 px-1.5 py-0.5 text-[.6rem] font-medium text-muted">Giá minh họa</span></span></div>
+      </div>
+      <button type="button" aria-label="Nghe thử Đêm Đông Hà Nội" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink md:hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button>
+      </article></li>
+<li class="group"><article class="flex items-center gap-4 border-b border-line py-4 md:block md:border-0 md:py-0">
+      <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg md:h-auto md:w-auto md:aspect-square md:rounded-xl"><img src="assets/artwork-pop-nang-sai-gon.svg" alt="Ảnh bìa bài Nắng Sài Gòn" class="h-full w-full object-cover" loading="lazy">
+        <span class="absolute left-4 top-4 hidden text-[.65rem] font-semibold uppercase tracking-[.14em] text-white md:block">Pop Acoustic</span>
+        <button type="button" aria-label="Nghe thử Nắng Sài Gòn" class="absolute bottom-4 left-4 hidden h-12 w-12 place-items-center rounded-full bg-[#faf7f0] text-ink md:grid"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button></div>
+      <div class="min-w-0 flex-1 md:mt-4">
+        <h3 class="font-semibold leading-snug md:text-lg"><a href="#">Nắng Sài Gòn</a></h3>
+        <p class="text-sm text-muted">Tomahu Music <span class="md:hidden">· Pop Acoustic</span></p>
+        <p class="text-sm text-muted md:hidden">Tươi sáng · 3:04 · 112 BPM</p>
+        <p class="mt-2 hidden flex-wrap gap-2 text-xs md:flex"><span class="rounded-full bg-cream2 px-3 py-1">Pop Acoustic</span><span class="rounded-full border border-line px-3 py-1">Tươi sáng</span></p>
+        <div class="mt-3 hidden items-center justify-between border-t border-line pt-3 text-sm md:flex"><span class="text-muted">3:04 · 112 BPM</span><span class="font-semibold">Từ [GIÁ] <span class="ml-1 rounded bg-cream2 px-1.5 py-0.5 text-[.6rem] font-medium text-muted">Giá minh họa</span></span></div>
+      </div>
+      <button type="button" aria-label="Nghe thử Nắng Sài Gòn" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink md:hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button>
+      </article></li>
+<li class="group"><article class="flex items-center gap-4 border-b border-line py-4 md:block md:border-0 md:py-0">
+      <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg md:h-auto md:w-auto md:aspect-square md:rounded-xl"><img src="assets/artwork-cin-tay-nguyen.svg" alt="Ảnh bìa bài Khoảng Lặng Tây Nguyên" class="h-full w-full object-cover" loading="lazy">
+        <span class="absolute left-4 top-4 hidden text-[.65rem] font-semibold uppercase tracking-[.14em] text-white md:block">Cinematic Ambient</span>
+        <button type="button" aria-label="Nghe thử Khoảng Lặng Tây Nguyên" class="absolute bottom-4 left-4 hidden h-12 w-12 place-items-center rounded-full bg-[#faf7f0] text-ink md:grid"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button></div>
+      <div class="min-w-0 flex-1 md:mt-4">
+        <h3 class="font-semibold leading-snug md:text-lg"><a href="#">Khoảng Lặng Tây Nguyên</a></h3>
+        <p class="text-sm text-muted">Tomahu Music <span class="md:hidden">· Cinematic Ambient</span></p>
+        <p class="text-sm text-muted md:hidden">Bình yên · 3:30 · 65 BPM</p>
+        <p class="mt-2 hidden flex-wrap gap-2 text-xs md:flex"><span class="rounded-full bg-cream2 px-3 py-1">Cinematic Ambient</span><span class="rounded-full border border-line px-3 py-1">Bình yên</span></p>
+        <div class="mt-3 hidden items-center justify-between border-t border-line pt-3 text-sm md:flex"><span class="text-muted">3:30 · 65 BPM</span><span class="font-semibold">Từ [GIÁ] <span class="ml-1 rounded bg-cream2 px-1.5 py-0.5 text-[.6rem] font-medium text-muted">Giá minh họa</span></span></div>
+      </div>
+      <button type="button" aria-label="Nghe thử Khoảng Lặng Tây Nguyên" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink md:hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button>
+      </article></li>
+<li class="group"><article class="flex items-center gap-4 border-b border-line py-4 md:block md:border-0 md:py-0">
+      <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg md:h-auto md:w-auto md:aspect-square md:rounded-xl"><img src="assets/artwork-fut-nhip-song.svg" alt="Ảnh bìa bài Nhịp Sống Phố Thị" class="h-full w-full object-cover" loading="lazy">
+        <span class="absolute left-4 top-4 hidden text-[.65rem] font-semibold uppercase tracking-[.14em] text-white md:block">Future Bass</span>
+        <button type="button" aria-label="Nghe thử Nhịp Sống Phố Thị" class="absolute bottom-4 left-4 hidden h-12 w-12 place-items-center rounded-full bg-[#faf7f0] text-ink md:grid"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button></div>
+      <div class="min-w-0 flex-1 md:mt-4">
+        <h3 class="font-semibold leading-snug md:text-lg"><a href="#">Nhịp Sống Phố Thị</a></h3>
+        <p class="text-sm text-muted">Tomahu Music <span class="md:hidden">· Future Bass</span></p>
+        <p class="text-sm text-muted md:hidden">Sôi động · 2:40 · 128 BPM</p>
+        <p class="mt-2 hidden flex-wrap gap-2 text-xs md:flex"><span class="rounded-full bg-cream2 px-3 py-1">Future Bass</span><span class="rounded-full border border-line px-3 py-1">Sôi động</span></p>
+        <div class="mt-3 hidden items-center justify-between border-t border-line pt-3 text-sm md:flex"><span class="text-muted">2:40 · 128 BPM</span><span class="font-semibold">Từ [GIÁ] <span class="ml-1 rounded bg-cream2 px-1.5 py-0.5 text-[.6rem] font-medium text-muted">Giá minh họa</span></span></div>
+      </div>
+      <button type="button" aria-label="Nghe thử Nhịp Sống Phố Thị" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink md:hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button>
+      </article></li>
+<li class="group"><article class="flex items-center gap-4 border-b border-line py-4 md:block md:border-0 md:py-0">
+      <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg md:h-auto md:w-auto md:aspect-square md:rounded-xl"><img src="assets/artwork-trad-hoang-hon.svg" alt="Ảnh bìa bài Hoàng Hôn Sông Hương" class="h-full w-full object-cover" loading="lazy">
+        <span class="absolute left-4 top-4 hidden text-[.65rem] font-semibold uppercase tracking-[.14em] text-white md:block">Traditional Fusion</span>
+        <button type="button" aria-label="Nghe thử Hoàng Hôn Sông Hương" class="absolute bottom-4 left-4 hidden h-12 w-12 place-items-center rounded-full bg-[#faf7f0] text-ink md:grid"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button></div>
+      <div class="min-w-0 flex-1 md:mt-4">
+        <h3 class="font-semibold leading-snug md:text-lg"><a href="#">Hoàng Hôn Sông Hương</a></h3>
+        <p class="text-sm text-muted">Tomahu Music <span class="md:hidden">· Traditional Fusion</span></p>
+        <p class="text-sm text-muted md:hidden">Thư thái · 3:15 · 85 BPM</p>
+        <p class="mt-2 hidden flex-wrap gap-2 text-xs md:flex"><span class="rounded-full bg-cream2 px-3 py-1">Traditional Fusion</span><span class="rounded-full border border-line px-3 py-1">Thư thái</span></p>
+        <div class="mt-3 hidden items-center justify-between border-t border-line pt-3 text-sm md:flex"><span class="text-muted">3:15 · 85 BPM</span><span class="font-semibold">Từ [GIÁ] <span class="ml-1 rounded bg-cream2 px-1.5 py-0.5 text-[.6rem] font-medium text-muted">Giá minh họa</span></span></div>
+      </div>
+      <button type="button" aria-label="Nghe thử Hoàng Hôn Sông Hương" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink md:hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button>
+      </article></li>
+<li class="group"><article class="flex items-center gap-4 border-b border-line py-4 md:block md:border-0 md:py-0">
+      <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg md:h-auto md:w-auto md:aspect-square md:rounded-xl"><img src="assets/artwork-lofi-mua-pho-co.svg" alt="Ảnh bìa bài Mưa Phố Cổ" class="h-full w-full object-cover" loading="lazy">
+        <span class="absolute left-4 top-4 hidden text-[.65rem] font-semibold uppercase tracking-[.14em] text-white md:block">Lo-fi Chill</span>
+        <button type="button" aria-label="Nghe thử Mưa Phố Cổ" class="absolute bottom-4 left-4 hidden h-12 w-12 place-items-center rounded-full bg-[#faf7f0] text-ink md:grid"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button></div>
+      <div class="min-w-0 flex-1 md:mt-4">
+        <h3 class="font-semibold leading-snug md:text-lg"><a href="#">Mưa Phố Cổ</a></h3>
+        <p class="text-sm text-muted">Tomahu Music <span class="md:hidden">· Lo-fi Chill</span></p>
+        <p class="text-sm text-muted md:hidden">Thư thái · 2:50 · 72 BPM</p>
+        <p class="mt-2 hidden flex-wrap gap-2 text-xs md:flex"><span class="rounded-full bg-cream2 px-3 py-1">Lo-fi Chill</span><span class="rounded-full border border-line px-3 py-1">Thư thái</span></p>
+        <div class="mt-3 hidden items-center justify-between border-t border-line pt-3 text-sm md:flex"><span class="text-muted">2:50 · 72 BPM</span><span class="font-semibold">Từ [GIÁ] <span class="ml-1 rounded bg-cream2 px-1.5 py-0.5 text-[.6rem] font-medium text-muted">Giá minh họa</span></span></div>
+      </div>
+      <button type="button" aria-label="Nghe thử Mưa Phố Cổ" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink md:hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button>
+      </article></li>
+<li class="group"><article class="flex items-center gap-4 border-b border-line py-4 md:block md:border-0 md:py-0">
+      <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg md:h-auto md:w-auto md:aspect-square md:rounded-xl"><img src="assets/artwork-cin-chuyen-tau.svg" alt="Ảnh bìa bài Chuyến Tàu Đêm" class="h-full w-full object-cover" loading="lazy">
+        <span class="absolute left-4 top-4 hidden text-[.65rem] font-semibold uppercase tracking-[.14em] text-white md:block">Cinematic Ambient</span>
+        <button type="button" aria-label="Nghe thử Chuyến Tàu Đêm" class="absolute bottom-4 left-4 hidden h-12 w-12 place-items-center rounded-full bg-[#faf7f0] text-ink md:grid"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button></div>
+      <div class="min-w-0 flex-1 md:mt-4">
+        <h3 class="font-semibold leading-snug md:text-lg"><a href="#">Chuyến Tàu Đêm</a></h3>
+        <p class="text-sm text-muted">Tomahu Music <span class="md:hidden">· Cinematic Ambient</span></p>
+        <p class="text-sm text-muted md:hidden">Hồi hộp · 2:58 · 90 BPM</p>
+        <p class="mt-2 hidden flex-wrap gap-2 text-xs md:flex"><span class="rounded-full bg-cream2 px-3 py-1">Cinematic Ambient</span><span class="rounded-full border border-line px-3 py-1">Hồi hộp</span></p>
+        <div class="mt-3 hidden items-center justify-between border-t border-line pt-3 text-sm md:flex"><span class="text-muted">2:58 · 90 BPM</span><span class="font-semibold">Từ [GIÁ] <span class="ml-1 rounded bg-cream2 px-1.5 py-0.5 text-[.6rem] font-medium text-muted">Giá minh họa</span></span></div>
+      </div>
+      <button type="button" aria-label="Nghe thử Chuyến Tàu Đêm" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink md:hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button>
+      </article></li>
+<li class="group"><article class="flex items-center gap-4 border-b border-line py-4 md:block md:border-0 md:py-0">
+      <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg md:h-auto md:w-auto md:aspect-square md:rounded-xl"><img src="assets/artwork-pop-gio-mua-ha.svg" alt="Ảnh bìa bài Gió Mùa Hạ" class="h-full w-full object-cover" loading="lazy">
+        <span class="absolute left-4 top-4 hidden text-[.65rem] font-semibold uppercase tracking-[.14em] text-white md:block">Pop Acoustic</span>
+        <button type="button" aria-label="Nghe thử Gió Mùa Hạ" class="absolute bottom-4 left-4 hidden h-12 w-12 place-items-center rounded-full bg-[#faf7f0] text-ink md:grid"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button></div>
+      <div class="min-w-0 flex-1 md:mt-4">
+        <h3 class="font-semibold leading-snug md:text-lg"><a href="#">Gió Mùa Hạ</a></h3>
+        <p class="text-sm text-muted">Tomahu Music <span class="md:hidden">· Pop Acoustic</span></p>
+        <p class="text-sm text-muted md:hidden">Tươi sáng · 3:12 · 104 BPM</p>
+        <p class="mt-2 hidden flex-wrap gap-2 text-xs md:flex"><span class="rounded-full bg-cream2 px-3 py-1">Pop Acoustic</span><span class="rounded-full border border-line px-3 py-1">Tươi sáng</span></p>
+        <div class="mt-3 hidden items-center justify-between border-t border-line pt-3 text-sm md:flex"><span class="text-muted">3:12 · 104 BPM</span><span class="font-semibold">Từ [GIÁ] <span class="ml-1 rounded bg-cream2 px-1.5 py-0.5 text-[.6rem] font-medium text-muted">Giá minh họa</span></span></div>
+      </div>
+      <button type="button" aria-label="Nghe thử Gió Mùa Hạ" class="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-ink md:hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button>
+      </article></li>
+  </ul>
+
+  <nav aria-label="Phân trang" class="mt-12">
+    <ul class="flex items-center justify-center gap-3 text-sm font-medium">
+      <li><a href="#" aria-label="Trang trước" class="grid h-11 w-11 place-items-center rounded-full border border-line text-muted">‹</a></li>
+      <li><a href="#" aria-current="page" class="grid h-11 w-11 place-items-center rounded-full bg-ink text-white">1</a></li>
+      <li><a href="#" class="grid h-11 w-11 place-items-center rounded-full">2</a></li>
+      <li><a href="#" class="grid h-11 w-11 place-items-center rounded-full">3</a></li>
+      <li><a href="#" aria-label="Trang sau" class="grid h-11 w-11 place-items-center rounded-full border border-ink">›</a></li>
+    </ul>
+  </nav>
+</main>
+
+<!-- Floating contact widget (placeholders; plain deep links), sits above the player bar -->
+<aside class="fab" aria-label="Liên hệ nhanh">
+  <ul class="flex flex-col gap-2">
+    <li><a href="https://zalo.me/[SO-ZALO]" class="flex h-12 items-center justify-center gap-2 rounded-full sm:h-auto sm:justify-start bg-[#0068ff] w-12 text-sm font-semibold text-white shadow-lg sm:w-auto sm:px-4 sm:py-3"><span aria-hidden="true">💬</span><span class="sr-only sm:not-sr-only">Zalo</span></a></li>
+    <li><a href="tel:[SO-DIEN-THOAI]" class="flex h-12 items-center justify-center gap-2 rounded-full sm:h-auto sm:justify-start bg-rust w-12 text-sm font-semibold text-white shadow-lg sm:w-auto sm:px-4 sm:py-3"><span aria-hidden="true">📞</span><span class="sr-only sm:not-sr-only">Hotline</span></a></li>
+    <li><a href="https://m.me/[TEN-TRANG]" class="flex h-12 items-center justify-center gap-2 rounded-full sm:h-auto sm:justify-start bg-ink w-12 text-sm font-semibold text-white shadow-lg sm:w-auto sm:px-4 sm:py-3"><span aria-hidden="true">✉️</span><span class="sr-only sm:not-sr-only">Messenger</span></a></li>
+  </ul>
+</aside>
+
+<!-- Persistent player bar -->
+<section aria-label="Trình phát nhạc" class="fixed inset-x-3 bottom-3 z-50 overflow-hidden rounded-2xl bg-ink text-white md:inset-x-0 md:bottom-0 md:rounded-none">
+  <div class="h-1 bg-white/10 md:hidden"><div class="h-full w-[38%] bg-[#e08a76]"></div></div>
+  <div class="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3 md:px-10">
+    <div class="flex min-w-0 items-center gap-3 md:w-1/4">
+      <img src="assets/artwork-lofi-dem-dong.svg" alt="" class="h-12 w-12 rounded-lg">
+      <div class="min-w-0"><p class="truncate font-semibold">Đêm Đông Hà Nội</p><p class="hidden truncate text-sm text-white/65 md:block">Tomahu Music · Lo-fi Chill</p><p class="text-xs text-white/65 md:hidden">0:55 / 2:25</p></div>
+    </div>
+    <div class="flex flex-col items-center md:flex-1">
+      <div class="flex items-center gap-5">
+        <button type="button" aria-label="Bài trước" class="hidden md:block"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+        <button type="button" aria-label="Phát / Tạm dừng" class="grid h-12 w-12 place-items-center rounded-full bg-[#faf7f0] text-ink md:h-14 md:w-14"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"/></svg></button>
+        <button type="button" aria-label="Bài sau"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 5h2v14h-2zM4 5l11 7L4 19z"/></svg></button>
+      </div>
+      <div class="mt-1 hidden w-full max-w-xl items-center gap-3 text-xs text-white/70 md:flex"><span>0:55</span>
+        <div class="relative h-1 flex-1 rounded bg-white/20" role="slider" aria-label="Tiến độ phát" aria-valuemin="0" aria-valuemax="145" aria-valuenow="55" tabindex="0"><div class="h-full w-[38%] rounded bg-[#e08a76]"></div><span class="absolute left-[38%] top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"></span></div><span>2:25</span></div>
+    </div>
+    <div class="hidden items-center justify-end gap-5 md:flex md:w-1/4">
+      <div class="hidden items-center gap-2 lg:flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9zM16 8a5 5 0 010 8"/></svg><div class="h-1 w-24 rounded bg-white/25" role="slider" aria-label="Âm lượng" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" tabindex="0"><div class="h-full w-[70%] rounded bg-white"></div></div></div>
+      <a href="#" class="whitespace-nowrap rounded-full bg-rust px-5 py-3 text-sm font-semibold">Xem chi tiết bài</a>
+    </div>
+  </div>
+</section>
+</body>
+</html>

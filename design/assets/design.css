@@ -1,0 +1,13 @@
+/* Shared styles for design mockups (static, no app dependency). */
+:root{--cream:#f3eee3;--cream2:#ebe3d6;--ink:#1d1b18;--rust:#b0412a;--muted:#6b645a;--line:#d9d0c0;--player-h:64px}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink);font-family:"Be Vietnam Pro","Inter",system-ui,sans-serif}
+.font-display{font-family:"Playfair Display",Georgia,"Times New Roman",serif}
+.eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--rust)}
+.wave{display:flex;align-items:center;gap:3px;height:48px}
+.wave i{display:block;width:4px;border-radius:2px;background:#cfc6b6}
+.wave i.on{background:var(--rust)}
+.noscroll{scrollbar-width:none}.noscroll::-webkit-scrollbar{display:none}
+.fab{position:fixed;right:16px;bottom:calc(var(--player-h) + 16px);z-index:40}
+:focus-visible{outline:2px solid var(--rust);outline-offset:2px}
+@media (max-width:767px){.fab{bottom:calc(var(--player-h) + 24px)}}
