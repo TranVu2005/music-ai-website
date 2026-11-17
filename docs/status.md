@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-11-16 (Task 005 done; Task 007 in review)
+> Last updated: 2026-11-17 (Tasks 006 and 007 done; Task 009 in progress)
 > Purpose: single handoff document for any new chat, reviewer or agent. Read this file and `CHANGELOG.md` first.
 > Update rule: every PR that changes a decision, a task status or an open item updates this file in the same PR.
 
@@ -63,7 +63,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | Legacy scaffold cleanup (Express/MinIO/PayOS remnants), Dockerfile, compose, `.env.example` | Done in docs PRs; verified by Task 001 |
 | Phase 1 task specs 001-009 | Done |
 | Task 010 agent runtime handover (Gemini to Codex + Claude Code) | Done (PR #11) |
-| Phase 1 implementation | In progress (Tasks 001–005, 004b and 008 done; 007 in review; 006, 009 remain) |
+| Phase 1 implementation | In progress (Tasks 001–008 and 004b done; 009 in progress) |
 
 ### Phase 1 tasks (weeks 1-3)
 
@@ -75,20 +75,17 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | 003 Preview generator (FFmpeg + watermark) | Backend | 2 | 001 | Done (PR #9) |
 | 004 Catalog API | Backend | 2 | 002 | Done (PR #12) |
 | 004b Accent-insensitive catalog search | Backend | 2 | 004 | Done (PR #13) |
-| 007 Catalog UI + audio player | Frontend | 2 | 004, approved 005 | In review (PR awaiting owner merge) |
-| 006 Static pages (Home, About, Contact, Pricing, floating contact widget) | Frontend | 3 | approved 005, rebases on 007 | In review (PR open, placeholder prices and contact details) |
+| 007 Catalog UI + audio player | Frontend | 2 | 004, approved 005 | Done (PR #17, merged 2026-11-17) |
+| 006 Static pages (Home, About, Contact, Pricing, floating contact widget) | Frontend | 3 | approved 005, rebases on 007 | Done (PR #18, merged 2026-11-17; placeholder prices and contact details) |
 | 008 Request form (DB + email) | Backend + Frontend | 3 | 002 | Done (PR #14, merged 2026-09-25) |
-| 009 Deploy demo + Milestone 1 acceptance | DevOps/QA | 3 | 001-008, owner approval | Waiting |
+| 009 Deploy demo + Milestone 1 acceptance | DevOps/QA | 3 | 001-008, owner approval | In progress (demo data and deploy prep; deployment on hold until owner approval) |
 
 ## 5. Next actions
 
-1. Task 007 (catalog UI + player): in review.
-2. After Task 007 merges, Task 006 rebases on it.
-3. Task 006 (static pages, pricing, floating contact; placeholder data).
-4. Demo data (sample tracks and previews for the client demo).
-3. Task 009 (deploy + acceptance).
-4. During Task 009, verify Render's `x-forwarded-for` chain from two different networks, set `TRUSTED_PROXY_HOPS` accordingly, and confirm the `unknown-client` warning never fires.
-5. In a separate PR before 2026-10-19 (overdue; verify current state), bump CI actions to v5 and pin `ubuntu-24.04`.
+1. Demo data (CC0 sample tracks and previews for the client demo): in progress in Task 009.
+2. Task 009 (deploy + acceptance): deployment on hold until the owner approves the pre-deploy checklist.
+3. During Task 009, verify Render's `x-forwarded-for` chain from two different networks, set `TRUSTED_PROXY_HOPS` accordingly, and confirm the `unknown-client` warning never fires.
+4. In a separate PR before 2026-10-19 (overdue; verify current state), bump CI actions to v5 and pin `ubuntu-24.04`.
 
 ## 6. Open items
 
