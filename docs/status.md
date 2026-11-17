@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-11-15 (Task 008 done; MVP demo prep)
+> Last updated: 2026-11-16 (Task 005 done; Task 007 in review)
 > Purpose: single handoff document for any new chat, reviewer or agent. Read this file and `CHANGELOG.md` first.
 > Update rule: every PR that changes a decision, a task status or an open item updates this file in the same PR.
 
@@ -63,7 +63,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | Legacy scaffold cleanup (Express/MinIO/PayOS remnants), Dockerfile, compose, `.env.example` | Done in docs PRs; verified by Task 001 |
 | Phase 1 task specs 001-009 | Done |
 | Task 010 agent runtime handover (Gemini to Codex + Claude Code) | Done (PR #11) |
-| Phase 1 implementation | In progress (Tasks 001–004b and 008 done; 005, 007, 006, 009 remain) |
+| Phase 1 implementation | In progress (Tasks 001–005, 004b and 008 done; 007 in review; 006, 009 remain) |
 
 ### Phase 1 tasks (weeks 1-3)
 
@@ -71,19 +71,19 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 |---|---|---|---|---|
 | 001 Project setup, CI, audio guard | DevOps | 1 | - | Done (PR #7) |
 | 002 Prisma schema (users, tracks, custom_requests) + seed | Backend | 1 | 001 | Done (PR #8) |
-| 005 UI design prototypes (Home, Catalog) | Frontend | 1 | brand name + style | Ready (unblocked): brand "Tomahu Music" is a placeholder; style = `design/reference/Design.pdf` |
+| 005 UI design prototypes (Home, Catalog) | Frontend | 1 | brand name + style | Done (PR #16, owner-approved 2026-11-16): `design/home.html`, `design/catalog.html`; brand "Tomahu Music" is a placeholder; style = `design/reference/Design.pdf` |
 | 003 Preview generator (FFmpeg + watermark) | Backend | 2 | 001 | Done (PR #9) |
 | 004 Catalog API | Backend | 2 | 002 | Done (PR #12) |
 | 004b Accent-insensitive catalog search | Backend | 2 | 004 | Done (PR #13) |
-| 007 Catalog UI + audio player | Frontend | 2 | 004, approved 005 | Waiting |
+| 007 Catalog UI + audio player | Frontend | 2 | 004, approved 005 | In review (PR awaiting owner merge) |
 | 006 Static pages (Home, About, Contact, Pricing, floating contact widget) | Frontend | 3 | approved 005, rebases on 007 | Waiting |
 | 008 Request form (DB + email) | Backend + Frontend | 3 | 002 | Done (PR #14, merged 2026-09-25) |
 | 009 Deploy demo + Milestone 1 acceptance | DevOps/QA | 3 | 001-008, owner approval | Waiting |
 
 ## 5. Next actions
 
-1. Task 005 (UI prototypes, placeholder brand, style from `design/reference/Design.pdf`).
-2. Task 007 (catalog UI + player).
+1. Task 007 (catalog UI + player): in review.
+2. After Task 007 merges, Task 006 rebases on it.
 3. Task 006 (static pages, pricing, floating contact; placeholder data).
 4. Demo data (sample tracks and previews for the client demo).
 5. Task 009 (deploy + acceptance).

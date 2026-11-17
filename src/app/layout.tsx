@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AudioPlayerProvider } from "../components/player/AudioPlayerContext";
+import { AudioPlayerBar } from "../components/player/AudioPlayerBar";
 
 export const metadata: Metadata = {
   title: "music-shop",
@@ -13,7 +15,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <AudioPlayerProvider>
+          {children}
+          <AudioPlayerBar />
+        </AudioPlayerProvider>
+      </body>
     </html>
   );
 }

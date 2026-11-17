@@ -4,6 +4,14 @@
 > **Source of Truth**: `docs/project-plan.md` (directly extracted and systematized from the client implementation plan *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version") - 2026-09-20).
 > **Project Scope**: Strictly frozen at exactly 13 features allocated across 3 phases in a 5 / 4 / 4 ratio (Phase 1: 5 features, Phase 2: 4 features, Phase 3: 4 features).
 
+## 2026-11-16 — Task 007: Catalog UI and Audio Preview Player
+
+- Added `/tracks` (debounced accent-insensitive search sending the raw query, genre and mood filters from `GET /api/filters`, pagination synced to the URL) and `/tracks/[slug]` (full metadata, Vietnamese 404 for unknown or unpublished slugs). BPM is display-only.
+- Added a single shared audio player (`AudioPlayerProvider`, `AudioPlayerBar`, `useAudioPlayer`) mounted in the root layout: play/pause, seek, volume/mute, and only one track plays at a time.
+- Catalog, player and detail strings added to `src/lib/i18n/vi.ts`; design tokens from the approved mockups added to `globals.css`.
+- Added React Testing Library, user-event, jest-dom and jsdom as devDependencies; component tests opt in to jsdom per file so node/DB tests are unchanged.
+- Task 005 marked Done in `docs/status.md` (PR #16, owner-approved 2026-11-16).
+
 ## 2026-11-15 — MVP Demo Preparation (docs only)
 
 - `docs/status.md`: Task 008 marked Done (PR #14); Task 005 unblocked with placeholder brand "Tomahu Music" and style direction from the owner mockup; next actions reordered to 005, 007, 006, demo data, 009; placeholder-content decision recorded.

@@ -1,1 +1,38 @@
 @import "tailwindcss";
+
+/* Design tokens from the approved Task 005 mockups (design/assets/design.css). */
+@theme {
+  --color-cream: #f3eee3;
+  --color-cream2: #ebe3d6;
+  --color-ink: #1d1b18;
+  --color-rust: #b0412a;
+  --color-muted: #6b645a;
+  --color-line: #d9d0c0;
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: "Be Vietnam Pro", Inter, system-ui, sans-serif;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--color-rust);
+}
+
+.noscroll {
+  scrollbar-width: none;
+}
+.noscroll::-webkit-scrollbar {
+  display: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-rust);
+  outline-offset: 2px;
+}
