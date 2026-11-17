@@ -11,8 +11,8 @@ const linkBase =
 export function FloatingContact() {
   const { track } = usePlayer();
   // AudioPlayerBar is fixed at the bottom while a track is loaded (floating card on mobile,
-  // full-width bar on desktop). Lift the widget above it; otherwise keep a normal corner offset.
-  const offset = track ? "bottom-28 md:bottom-24" : "bottom-4 md:bottom-6";
+  // full-width bar on desktop). Lift the widget above it (desktop bar is ~100px tall; measured in browser); otherwise keep a normal corner offset.
+  const offset = track ? "bottom-28 md:bottom-32" : "bottom-4 md:bottom-6";
   return (
     <aside
       aria-label={vi.floatingContact.label}
