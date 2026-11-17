@@ -76,7 +76,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 | 004 Catalog API | Backend | 2 | 002 | Done (PR #12) |
 | 004b Accent-insensitive catalog search | Backend | 2 | 004 | Done (PR #13) |
 | 007 Catalog UI + audio player | Frontend | 2 | 004, approved 005 | In review (PR awaiting owner merge) |
-| 006 Static pages (Home, About, Contact, Pricing, floating contact widget) | Frontend | 3 | approved 005, rebases on 007 | Waiting |
+| 006 Static pages (Home, About, Contact, Pricing, floating contact widget) | Frontend | 3 | approved 005, rebases on 007 | In review (PR open, placeholder prices and contact details) |
 | 008 Request form (DB + email) | Backend + Frontend | 3 | 002 | Done (PR #14, merged 2026-09-25) |
 | 009 Deploy demo + Milestone 1 acceptance | DevOps/QA | 3 | 001-008, owner approval | Waiting |
 
@@ -86,9 +86,9 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 2. After Task 007 merges, Task 006 rebases on it.
 3. Task 006 (static pages, pricing, floating contact; placeholder data).
 4. Demo data (sample tracks and previews for the client demo).
-5. Task 009 (deploy + acceptance).
-6. During Task 009, verify Render's `x-forwarded-for` chain from two different networks, set `TRUSTED_PROXY_HOPS` accordingly, and confirm the `unknown-client` warning never fires.
-7. In a separate PR before 2026-10-19 (overdue; verify current state), bump CI actions to v5 and pin `ubuntu-24.04`.
+3. Task 009 (deploy + acceptance).
+4. During Task 009, verify Render's `x-forwarded-for` chain from two different networks, set `TRUSTED_PROXY_HOPS` accordingly, and confirm the `unknown-client` warning never fires.
+5. In a separate PR before 2026-10-19 (overdue; verify current state), bump CI actions to v5 and pin `ubuntu-24.04`.
 
 ## 6. Open items
 

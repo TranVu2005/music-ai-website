@@ -8,13 +8,13 @@
   --color-rust: #b0412a;
   --color-muted: #6b645a;
   --color-line: #d9d0c0;
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-display: var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif;
 }
 
 body {
   background: var(--color-cream);
   color: var(--color-ink);
-  font-family: "Be Vietnam Pro", Inter, system-ui, sans-serif;
+  font-family: var(--font-body), "Be Vietnam Pro", Inter, system-ui, sans-serif;
 }
 
 .eyebrow {

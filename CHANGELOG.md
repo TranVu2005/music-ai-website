@@ -4,6 +4,15 @@
 > **Source of Truth**: `docs/project-plan.md` (directly extracted and systematized from the client implementation plan *"Kế hoạch triển khai website bán nhạc: bản gửi khách hàng"* ("Music website implementation plan: client version") - 2026-09-20).
 > **Project Scope**: Strictly frozen at exactly 13 features allocated across 3 phases in a 5 / 4 / 4 ratio (Phase 1: 5 features, Phase 2: 4 features, Phase 3: 4 features).
 
+## 2026-11-17 — Task 006: Static Brand and Informational Pages
+
+- Added Header, Navigation, MobileMenu, Footer, Button, Card and a `FloatingContact` widget (Zalo, Hotline `tel:`, Messenger as plain deep links) to the root layout; the widget lifts above `AudioPlayerBar` while a track is loaded.
+- Added Home, About, Contact and Pricing pages with per-route metadata and OpenGraph tags (`src/lib/seo.ts`); all CTAs "Đặt nhạc riêng" link to `/custom-request`.
+- Added `src/config/pricing.ts` (2 licenses, 3 custom packages, add-ons) and `src/config/contact.ts`. All values are PLACEHOLDERS flagged `isPlaceholder: true`; the Pricing page shows a "Giá minh họa" badge while any placeholder price renders.
+- All page strings live in `src/lib/i18n/vi.ts`. Fonts (Be Vietnam Pro, Playfair Display) load through `next/font/google`.
+- Added component tests: pages, dictionary keys, pricing-from-config, placeholder badge, FloatingContact.
+- `docs/status.md`: Task 007 Done (PR #17), Task 006 in review.
+
 ## 2026-11-16 — Task 007: Catalog UI and Audio Preview Player
 
 - Added `/tracks` (debounced accent-insensitive search sending the raw query, genre and mood filters from `GET /api/filters`, pagination synced to the URL) and `/tracks/[slug]` (full metadata, Vietnamese 404 for unknown or unpublished slugs). BPM is display-only.
