@@ -52,6 +52,7 @@ function failure(status: number, errors: Record<string, string>): Response {
 
 export async function handleCustomRequest(request: Request, deps: CustomRequestDeps): Promise<Response> {
   const clientIp = getClientIp(request, getTrustedProxyHops());
+  console.log("[tmp-xff-debug]", JSON.stringify({ xff: request.headers.get("x-forwarded-for"), realIp: request.headers.get("x-real-ip"), hops: getTrustedProxyHops(), selected: clientIp })); // TEMP: revert after Task 009 proxy check
   if (!await deps.rateLimiter.consume(clientIp, deps.now())) return failure(429, { form: "rateLimited" });
 
   let body: unknown;
