@@ -9,6 +9,7 @@ import {
   FORBIDDEN_KEYS,
 } from "../../src/lib/api/serialization";
 import { buildTrackSearchText } from "../../src/lib/search/normalize";
+import { sampleTracks } from "../../src/db/seed";
 
 // Unit tests for serialization and sanitization logic (runs without database)
 describe("Catalog API - Unit & Serialization Tests", () => {
@@ -113,6 +114,30 @@ describeDb("Catalog REST API Integration Tests", () => {
     }
   }
 
+  // Number of published tracks the seed provides; tests must not hardcode seed contents.
+  const SEEDED = sampleTracks.length;
+
+  // Creates a published fixture track; every fixture slug must start with "test-004-" for cleanup.
+  async function createFixture(
+    slug: string,
+    fields: { title: string; description?: string | null; genre: string; mood: string; bpm?: number },
+  ) {
+    return prisma.track.create({
+      data: {
+        slug,
+        title: fields.title,
+        description: fields.description ?? null,
+        searchText: buildTrackSearchText(fields.title, fields.description ?? null),
+        genre: fields.genre,
+        mood: fields.mood,
+        bpm: fields.bpm ?? 100,
+        durationSeconds: 20,
+        previewFileUrl: "/audio/previews/test.mp3",
+        status: TrackStatus.published,
+      },
+    });
+  }
+
   // Cleanup all test fixtures with prefix "test-004-"
   async function cleanupTestFixtures() {
     await prisma.track.deleteMany({
@@ -139,7 +164,7 @@ describeDb("Catalog REST API Integration Tests", () => {
   });
 
   describe("GET /api/tracks - Pagination & Ordering", () => {
-    it("returns default pagination with 5 seeded tracks and totalPages = 1", async () => {
+    it("returns default pagination with all seeded tracks and totalPages = 1", async () => {
       const req = new Request("http://localhost:3000/api/tracks");
       const res = await getTracks(req);
 
@@ -147,11 +172,11 @@ describeDb("Catalog REST API Integration Tests", () => {
       const data = await res.json();
 
       expect(data).toHaveProperty("items");
-      expect(data).toHaveProperty("total", 5);
+      expect(data).toHaveProperty("total", SEEDED);
       expect(data).toHaveProperty("page", 1);
       expect(data).toHaveProperty("limit", 10);
       expect(data).toHaveProperty("totalPages", 1);
-      expect(data.items).toHaveLength(5);
+      expect(data.items).toHaveLength(SEEDED);
 
       assertNoForbiddenKeys(data);
     });
@@ -165,8 +190,8 @@ describeDb("Catalog REST API Integration Tests", () => {
 
       expect(data.page).toBe(2);
       expect(data.limit).toBe(2);
-      expect(data.total).toBe(5);
-      expect(data.totalPages).toBe(3);
+      expect(data.total).toBe(SEEDED);
+      expect(data.totalPages).toBe(Math.ceil(SEEDED / 2));
       expect(data.items).toHaveLength(2);
     });
 
@@ -196,7 +221,7 @@ describeDb("Catalog REST API Integration Tests", () => {
       expect(res.status).toBe(200);
       const data = await res.json();
       expect(data.limit).toBe(50);
-      expect(data.items).toHaveLength(5);
+      expect(data.items).toHaveLength(SEEDED);
     });
 
     it("returns HTTP 400 for non-integer or invalid page parameter", async () => {
@@ -240,7 +265,7 @@ describeDb("Catalog REST API Integration Tests", () => {
       expect(res.status).toBe(200);
       const data = await res.json();
       expect(data.items).toEqual([]);
-      expect(data.total).toBe(5);
+      expect(data.total).toBe(SEEDED);
       expect(data.page).toBe(999);
       expect(data.totalPages).toBe(1);
     });
@@ -315,7 +340,7 @@ describeDb("Catalog REST API Integration Tests", () => {
       const res = await getTracks(req);
       const data = await res.json();
 
-      expect(data.total).toBe(5);
+      expect(data.total).toBe(SEEDED);
       const slugs = data.items.map((t: { slug: string }) => t.slug);
       expect(slugs).not.toContain("test-004-draft");
       expect(slugs).not.toContain("test-004-archived");
@@ -324,32 +349,34 @@ describeDb("Catalog REST API Integration Tests", () => {
     });
 
     it("searches q without accents or case across title and description", async () => {
-      // Case-insensitive title match
-      const req1 = new Request("http://localhost:3000/api/tracks?q=sai%20gon");
-      const res1 = await getTracks(req1);
-      const data1 = await res1.json();
-      expect(data1.items).toHaveLength(1);
-      expect(data1.items[0].slug).toBe("nang-sai-gon");
+      // Own fixtures with unique tokens, so the result does not depend on seed contents.
+      await createFixture("test-004-search-title", {
+        title: "Zqxview Đêm Đông",
+        description: "Giai điệu mộc mạc",
+        genre: "Test Genre A",
+        mood: "Test Mood A",
+      });
+      await createFixture("test-004-search-desc", {
+        title: "Zqxplain",
+        description: "Tiếng sáo zqxflute êm dịu",
+        genre: "Test Genre B",
+        mood: "Test Mood B",
+      });
 
-      const req2 = new Request("http://localhost:3000/api/tracks?q=SAI%20GON");
-      const res2 = await getTracks(req2);
-      const data2 = await res2.json();
-      expect(data2.items).toHaveLength(1);
-      expect(data2.items[0].slug).toBe("nang-sai-gon");
-
-      // Description match: "tiếng sáo" is in Khoảng Lặng Tây Nguyên
-      const req3 = new Request("http://localhost:3000/api/tracks?q=tiếng%20sáo");
-      const res3 = await getTracks(req3);
-      const data3 = await res3.json();
-      expect(data3.items).toHaveLength(1);
-      expect(data3.items[0].slug).toBe("khoang-lang-tay-nguyen");
-
-      for (const q of ["dem dong", "DEM DONG", "Đêm", "dem"]) {
-        const req = new Request(`http://localhost:3000/api/tracks?q=${encodeURIComponent(q)}`);
-        const res = await getTracks(req);
+      // Title match, case-insensitive and accent-insensitive
+      for (const q of ["zqxview dem dong", "ZQXVIEW DEM DONG", "Zqxview Đêm Đông", "zqxview đêm"]) {
+        const res = await getTracks(new Request(`http://localhost:3000/api/tracks?q=${encodeURIComponent(q)}`));
         const data = await res.json();
         expect(data.items).toHaveLength(1);
-        expect(data.items[0].slug).toBe("dem-dong-ha-noi");
+        expect(data.items[0].slug).toBe("test-004-search-title");
+      }
+
+      // Description match: "tiếng sáo zqxflute" is only in the second fixture's description
+      for (const q of ["tieng sao zqxflute", "TIẾNG SÁO ZQXFLUTE"]) {
+        const res = await getTracks(new Request(`http://localhost:3000/api/tracks?q=${encodeURIComponent(q)}`));
+        const data = await res.json();
+        expect(data.items).toHaveLength(1);
+        expect(data.items[0].slug).toBe("test-004-search-desc");
       }
 
       const noMatch = await getTracks(new Request("http://localhost:3000/api/tracks?q=xyz-no-match"));
@@ -362,21 +389,21 @@ describeDb("Catalog REST API Integration Tests", () => {
       const req = new Request("http://localhost:3000/api/tracks?q=%20%20%20");
       const res = await getTracks(req);
       const data = await res.json();
-      expect(data.total).toBe(5);
+      expect(data.total).toBe(SEEDED);
 
       const marksOnly = await getTracks(new Request("http://localhost:3000/api/tracks?q=%CC%81"));
-      expect((await marksOnly.json()).total).toBe(5);
+      expect((await marksOnly.json()).total).toBe(SEEDED);
     });
 
     it("escapes SQL wildcards (% and _) so they do not match everything", async () => {
-      // Searching % should NOT match all 5 tracks; it should only match tracks containing literal %
+      // Searching % should NOT match all seeded tracks; it should only match tracks containing literal %
       const reqPercent = new Request("http://localhost:3000/api/tracks?q=%25");
       const resPercent = await getTracks(reqPercent);
       const dataPercent = await resPercent.json();
       expect(dataPercent.items).toHaveLength(0);
       expect(dataPercent.total).toBe(0);
 
-      // Searching _ should NOT match all 5 tracks
+      // Searching _ should NOT match all seeded tracks
       const reqUnderscore = new Request("http://localhost:3000/api/tracks?q=_");
       const resUnderscore = await getTracks(reqUnderscore);
       const dataUnderscore = await resUnderscore.json();
@@ -436,17 +463,26 @@ describeDb("Catalog REST API Integration Tests", () => {
     });
 
     it("filters by genre and mood", async () => {
-      const reqGenre = new Request("http://localhost:3000/api/tracks?genre=Lo-fi%20Chill");
-      const resGenre = await getTracks(reqGenre);
-      const dataGenre = await resGenre.json();
-      expect(dataGenre.items).toHaveLength(1);
-      expect(dataGenre.items[0].slug).toBe("dem-dong-ha-noi");
+      await createFixture("test-004-filter-a", { title: "Filter A", genre: "Zqx Genre", mood: "Zqx Mood" });
+      await createFixture("test-004-filter-b", { title: "Filter B", genre: "Zqx Genre", mood: "Zqx Other Mood" });
+      await createFixture("test-004-filter-c", { title: "Filter C", genre: "Zqx Other Genre", mood: "Zqx Mood" });
 
-      const reqMood = new Request("http://localhost:3000/api/tracks?mood=Energetic");
-      const resMood = await getTracks(reqMood);
-      const dataMood = await resMood.json();
-      expect(dataMood.items).toHaveLength(1);
-      expect(dataMood.items[0].slug).toBe("nhip-song-pho-thi");
+      const slugsFor = async (query: string): Promise<string[]> => {
+        const res = await getTracks(new Request(`http://localhost:3000/api/tracks?${query}`));
+        expect(res.status).toBe(200);
+        const data = await res.json();
+        return data.items.map((item: { slug: string }) => item.slug).sort();
+      };
+
+      expect(await slugsFor("genre=Zqx%20Genre")).toEqual(["test-004-filter-a", "test-004-filter-b"]);
+      expect(await slugsFor("mood=Zqx%20Mood")).toEqual(["test-004-filter-a", "test-004-filter-c"]);
+      expect(await slugsFor("genre=Zqx%20Genre&mood=Zqx%20Mood")).toEqual(["test-004-filter-a"]);
+
+      // Every seeded track is reachable through its own genre and mood filters.
+      for (const track of sampleTracks) {
+        expect(await slugsFor(`genre=${encodeURIComponent(track.genre)}`)).toContain(track.slug);
+        expect(await slugsFor(`mood=${encodeURIComponent(track.mood)}`)).toContain(track.slug);
+      }
     });
 
     it("returns empty result for unknown genre or mood", async () => {
@@ -466,25 +502,32 @@ describeDb("Catalog REST API Integration Tests", () => {
       const resBpm = await getTracks(reqBpm);
       expect(resBpm.status).toBe(200);
       const dataBpm = await resBpm.json();
-      // Returns all 5 tracks because bpm=78 has no filtering effect
-      expect(dataBpm.total).toBe(5);
-      expect(dataBpm.items).toHaveLength(5);
+      // Returns all seeded tracks because bpm=78 has no filtering effect
+      expect(dataBpm.total).toBe(SEEDED);
+      expect(dataBpm.items).toHaveLength(SEEDED);
     });
   });
 
   describe("GET /api/tracks/[slug] - Single Track Retrieval", () => {
     it("returns 200 with track details for an existing published track", async () => {
-      const req = new Request("http://localhost:3000/api/tracks/nang-sai-gon");
+      await createFixture("test-004-detail", {
+        title: "Detail Fixture",
+        description: "Detail description",
+        genre: "Detail Genre",
+        mood: "Detail Mood",
+        bpm: 112,
+      });
+      const req = new Request("http://localhost:3000/api/tracks/test-004-detail");
       const res = await getTrackBySlug(req, {
-        params: Promise.resolve({ slug: "nang-sai-gon" }),
+        params: Promise.resolve({ slug: "test-004-detail" }),
       });
 
       expect(res.status).toBe(200);
       const data = await res.json();
-      expect(data.slug).toBe("nang-sai-gon");
-      expect(data.title).toBe("Nắng Sài Gòn");
-      expect(data.genre).toBe("Pop Acoustic");
-      expect(data.mood).toBe("Uplifting");
+      expect(data.slug).toBe("test-004-detail");
+      expect(data.title).toBe("Detail Fixture");
+      expect(data.genre).toBe("Detail Genre");
+      expect(data.mood).toBe("Detail Mood");
       expect(data.bpm).toBe(112);
 
       assertNoForbiddenKeys(data);
@@ -540,21 +583,24 @@ describeDb("Catalog REST API Integration Tests", () => {
       expect(data).toHaveProperty("genres");
       expect(data).toHaveProperty("moods");
 
-      expect(data.genres).toEqual([
-        "Cinematic Ambient",
-        "Electronic Future Bass",
-        "Lo-fi Chill",
-        "Pop Acoustic",
-        "Traditional Fusion",
-      ]);
+      const sortedUnique = (values: string[]) => [...new Set(values)].sort();
+      expect(data.genres).toEqual(sortedUnique(data.genres));
+      expect(data.moods).toEqual(sortedUnique(data.moods));
 
-      expect(data.moods).toEqual([
-        "Energetic",
-        "Melancholic",
-        "Peaceful",
-        "Relaxing",
-        "Uplifting",
-      ]);
+      // Every seeded (published) genre and mood is present.
+      for (const track of sampleTracks) {
+        expect(data.genres).toContain(track.genre);
+        expect(data.moods).toContain(track.mood);
+      }
+
+      // Duplicates collapse to one entry and the result stays sorted.
+      await createFixture("test-004-filter-dup-1", { title: "Dup 1", genre: "Zqx Dup Genre", mood: "Zqx Dup Mood" });
+      await createFixture("test-004-filter-dup-2", { title: "Dup 2", genre: "Zqx Dup Genre", mood: "Zqx Dup Mood" });
+      const withFixtures = await (await getFilters()).json();
+      expect(withFixtures.genres.filter((g: string) => g === "Zqx Dup Genre")).toHaveLength(1);
+      expect(withFixtures.moods.filter((m: string) => m === "Zqx Dup Mood")).toHaveLength(1);
+      expect(withFixtures.genres).toEqual(sortedUnique(withFixtures.genres));
+      expect(withFixtures.moods).toEqual(sortedUnique(withFixtures.moods));
 
       assertNoForbiddenKeys(data);
     });
@@ -600,10 +646,12 @@ describeDb("Catalog REST API Integration Tests", () => {
     });
 
     it("never includes forbidden keys in GET /api/tracks/[slug] payload", async () => {
-      const req = new Request("http://localhost:3000/api/tracks/nang-sai-gon");
+      const seededSlug = sampleTracks[0].slug;
+      const req = new Request(`http://localhost:3000/api/tracks/${seededSlug}`);
       const res = await getTrackBySlug(req, {
-        params: Promise.resolve({ slug: "nang-sai-gon" }),
+        params: Promise.resolve({ slug: seededSlug }),
       });
+      expect(res.status).toBe(200);
       const data = await res.json();
 
       assertNoForbiddenKeys(data);
