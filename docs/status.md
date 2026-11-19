@@ -84,7 +84,7 @@ Client-facing plan (Vietnamese, not in repo docs): "Kế hoạch triển khai we
 
 1. Demo data (CC0 sample tracks and previews for the client demo): in progress in Task 009.
 2. Task 009 (deploy + acceptance): deployment on hold until the owner approves the pre-deploy checklist.
-3. During Task 009, verify Render's `x-forwarded-for` chain from two different networks, set `TRUSTED_PROXY_HOPS` accordingly, and confirm the `unknown-client` warning never fires.
+3. Render `x-forwarded-for` chain verified 2026-11-18: `<client>, <Cloudflare edge>, <Render internal 10.x>` (3 entries), so `TRUSTED_PROXY_HOPS=3` on Render (the default 1 selects the shared internal IP). No `unknown-client` warning seen. Still to confirm from a second network (owner, mobile data).
 4. In a separate PR before 2026-10-19 (overdue; verify current state), bump CI actions to v5 and pin `ubuntu-24.04`.
 
 ## 6. Open items
