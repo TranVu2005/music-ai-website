@@ -26,7 +26,7 @@ describeDb("Database Seed Verification & Idempotency", () => {
     await prisma.$disconnect();
   });
 
-  it("seeds 5 sample tracks with valid metadata and existing preview files", async () => {
+  it("seeds all sample tracks with valid metadata and existing preview files", async () => {
     // First seed execution
     await seed();
 
@@ -34,7 +34,7 @@ describeDb("Database Seed Verification & Idempotency", () => {
       orderBy: { slug: "asc" },
     });
 
-    expect(tracks).toHaveLength(5);
+    expect(tracks).toHaveLength(sampleTracks.length);
 
     // Verify all tracks are published
     for (const track of tracks) {
@@ -54,15 +54,16 @@ describeDb("Database Seed Verification & Idempotency", () => {
 
       const fileStats = fs.statSync(fullFilePath);
       expect(fileStats.size).toBeGreaterThan(0);
-      expect(fileStats.size).toBeLessThan(100 * 1024); // well under 100 KB
+      // 128 kbps MP3 is about 16000 bytes per second; allow 50% headroom over the declared duration.
+      expect(fileStats.size).toBeLessThan(track.durationSeconds * 16000 * 1.5);
     }
 
     // Verify distinct slugs, genres, and moods
     const slugs = new Set(tracks.map((t) => t.slug));
-    expect(slugs.size).toBe(5);
+    expect(slugs.size).toBe(sampleTracks.length);
 
     const genreMoodPairs = new Set(tracks.map((t) => `${t.genre}|${t.mood}`));
-    expect(genreMoodPairs.size).toBe(5);
+    expect(genreMoodPairs.size).toBe(sampleTracks.length);
   });
 
   it("is completely idempotent when executed a second time", async () => {
@@ -70,7 +71,7 @@ describeDb("Database Seed Verification & Idempotency", () => {
     const beforeTracks = await prisma.track.findMany({
       orderBy: { slug: "asc" },
     });
-    expect(beforeTracks).toHaveLength(5);
+    expect(beforeTracks).toHaveLength(sampleTracks.length);
 
     // Second seed execution
     await seed();
@@ -79,7 +80,7 @@ describeDb("Database Seed Verification & Idempotency", () => {
     const afterTracks = await prisma.track.findMany({
       orderBy: { slug: "asc" },
     });
-    expect(afterTracks).toHaveLength(5);
+    expect(afterTracks).toHaveLength(sampleTracks.length);
 
     for (let i = 0; i < beforeTracks.length; i++) {
       const before = beforeTracks[i];
